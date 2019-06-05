@@ -2,9 +2,9 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.nn.init as init
 
-class TaskEmbeddingNet(nn.Module):
+class EmbeddingNet(nn.Module):
     def __init__(self):
-        super(TaskEmbeddingNet, self).__init__()
+        super(EmbeddingNet, self).__init__()
         
         self.h = h = 16
         

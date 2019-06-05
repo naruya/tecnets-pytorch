@@ -68,12 +68,3 @@ class MILTaskset(Taskset):
             }, 
             'task_idx': idx
         }
-
-
-        # return {
-        #     'train': DataLoader(MILDataset(self.demo_dir, idx, train_indices),
-        #                     batch_size=100, shuffle=True),
-        #     'test': DataLoader(MILDataset(self.demo_dir, idx, test_indices),
-        #                     batch_size=100, shuffle=True),
-        #     'task': idx  
-        # }

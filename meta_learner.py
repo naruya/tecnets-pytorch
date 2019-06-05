@@ -13,7 +13,7 @@ import torch.nn.functional as F
 from torch.optim import Adam
 
 from ctr_net import ControlNet
-from emb_net import TaskEmbeddingNet
+from emb_net import EmbeddingNet
 from utils import load_scale_and_bias
 import cv2
 
@@ -23,7 +23,7 @@ class MetaLearner(object):
         self.device = device
         self.demo_dir = demo_dir
         self.log_dir = log_dir
-        self.emb_net = TaskEmbeddingNet().to(device)
+        self.emb_net = EmbeddingNet().to(device)
         self.ctr_net = ControlNet().to(device)
         self.emb_net = torch.nn.DataParallel(self.emb_net, device_ids=[0,1])
         self.ctr_net = torch.nn.DataParallel(self.ctr_net, device_ids=[0,1])
@@ -88,7 +88,7 @@ class MetaLearner(object):
         return train_vision, train_state, train_action, \
                 test_vision, test_state, test_action
 
-    def meta_train(self, task_loader, log_dir, epoch, writer=None, ctr_scale=None):
+    def meta_train(self, task_loader):
         pass
 
     def meta_test(self, task_loader):
