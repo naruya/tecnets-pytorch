@@ -12,6 +12,27 @@ class TecNets(MetaLearner):
     def __init__(self, device, log_dir):
         super(TecNets, self).__init__(device, log_dir)
 
+    def make_emb_dict(self, batch_task):
+        device = self.device
+
+        U_s, q_s = {}, {} # support/query_sentence dict
+
+        for task in batch_task:
+            U_inps = task['train']['vision']                       # U_n,100,3,125,125
+            U_inps = torch.cat([U_inps[:,0], U_inps[:,-1]], dim=1) # U_n,6,125,125
+            q_inps = task['test']['vision']                        # q_n,100,3,125,125
+            q_inps = torch.cat([q_inps[:,0], q_inps[:,-1]], dim=1) # q_n,6,125,125
+
+            U_sj = self.emb_net(U_inps.to(device)).mean(0)
+            U_sj = U_sj / torch.norm(U_sj)
+            q_sj = self.emb_net(q_inps.to(device))[0]
+
+            jdx = task['task_idx']
+            U_s[jdx] = U_sj
+            q_s[jdx] = q_sj
+
+        return U_s, q_s
+
     def cos_hinge_loss(self, q_sj, U_sj, U_si):
         real = torch.dot(q_sj, U_sj)
         fake = torch.dot(q_sj, U_si)
@@ -23,29 +44,14 @@ class TecNets(MetaLearner):
         device = self.device
 
         for batch_task in tqdm(task_loader):
+
             batch_task_pre, batch_task_emb, batch_task_ctr = itertools.tee(batch_task, 3)
 
             # ---- make sentences ----
-            
-            U_s, q_s = {}, {} # support/query_sentence dict
+
+            U_s, q_s = make_emb_dict(batch_task_pre)
+
             U_sj_list, q_sj_list = [], [] # ctr_net input sentences
-
-            for task in batch_task_pre:
-                U_inps = task['train']['vision']                       # U_n,100,3,125,125
-                U_inps = torch.cat([U_inps[:,0], U_inps[:,-1]], dim=1) # U_n,6,125,125
-                q_inps = task['test']['vision']                        # q_n,100,3,125,125
-                q_inps = torch.cat([q_inps[:,0], q_inps[:,-1]], dim=1) # q_n,6,125,125
-
-                U_sj = self.emb_net(U_inps.to(device)).mean(0)
-                U_sj = U_sj / torch.norm(U_sj)
-                q_sj = self.emb_net(q_inps.to(device))[0]
-
-                jdx = task['task_idx']
-                U_s[jdx] = U_sj
-                q_s[jdx] = q_sj
-
-                U_sj_list.append(U_sj)
-                q_sj_list.append(q_sj)
 
             # ---- calc loss_emb ----
 
@@ -60,11 +66,13 @@ class TecNets(MetaLearner):
                     if jdx == idx: continue
                     loss_emb += self.cos_hinge_loss(q_sj, U_sj, U_si)
 
+                U_sj_list.append(U_sj)
+                q_sj_list.append(q_sj)
+
             # ---- calc loss_ctr ----
 
-            # 64x20 -> 6400x20
-            U_sj = torch.stack(U_sj_list).repeat_interleave(100, dim=0)
-            q_sj = torch.stack(q_sj_list).repeat_interleave(100, dim=0)
+            U_sj = torch.stack(U_sj_list).repeat_interleave(100, dim=0) # 64x20 -> 6400x20
+            q_sj = torch.stack(q_sj_list).repeat_interleave(100, dim=0) # 64x20 -> 6400x20
 
             U_vision, U_state, U_action, \
                 q_vision, q_state, q_action = self.stack_demos(batch_task_ctr)
@@ -112,5 +120,5 @@ class TecNets(MetaLearner):
         inp = emb_net(inp.to(self.device))[0]
         return  inp / torch.norm(inp)
     
-    def sim_test(self, env, model_path, demo_path, max_length=100):
-        return super(TecNets, self).sim_test(env, model_path, demo_path, self.make_test_sentence, max_length=100)
+    def sim_test(self, env, demo_path):
+        return super(TecNets, self).sim_test(env, demo_path, self.make_test_sentence)

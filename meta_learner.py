@@ -101,7 +101,7 @@ class MetaLearner(object):
         self.scale = torch.from_numpy(np.array(self.scale, np.float32)).to(device)
         self.bias = torch.from_numpy(np.array(self.bias, np.float32)).to(device)
 
-    def sim_test(self, env, model_path, demo_path, make_test_sentence, max_length=100):
+    def sim_test(self, env, demo_path, make_test_sentence, max_length=100):
         device = self.device
 
         sentence = make_test_sentence(demo_path, self.emb_net)
