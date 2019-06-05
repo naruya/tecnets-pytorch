@@ -29,12 +29,14 @@ if __name__ == '__main__':
     print(log_dir)
     os.mkdir(log_dir)
 
-    meta_learner = TecNets(device=device, state_path=args.state_path, demo_dir=args.demo_dir, log_dir=log_dir)
+    meta_learner = TecNets(device=device, log_dir=log_dir)
 
-    train_task_loader = TaskLoader(MILTaskset(demo_dir=args.demo_dir, train_n_shot=1, test_n_shot=1, mode='train', n_valid=0),
-                             batch_size=args.num_batch_tasks)
-    # valid_task_loader = TaskLoader(MILTaskset(demo_dir=args.demo_dir, train_n_shot=1, test_n_shot=1, mode='valid'),
-    #                          batch_size=args.num_batch_tasks)
+    train_task_loader = TaskLoader(MILTaskset(
+        demo_dir=args.demo_dir, state_path=args.state_path,
+        train_n_shot=1, test_n_shot=1), batch_size=args.num_batch_tasks)
+    # valid_task_loader = TaskLoader(MILTaskset(
+    #     demo_dir=args.demo_dir, state_path=args.state_path,
+    #     train_n_shot=1, test_n_shot=1, valid=True, val_size=0.1),batch_size=args.num_batch_tasks)
 
     meta_epochs = 585
 

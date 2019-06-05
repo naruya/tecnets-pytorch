@@ -64,18 +64,17 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     device = f"cuda:{args.device_ids[0]}" if torch.cuda.is_available() else "cpu"
-    model_path = {'emb': args.emb_model_path, 'ctr': args.ctr_model_path}
 
     files = glob.glob(os.path.join(args.demo_dir, '*.pkl'))
     all_ids = [int(f.split('/')[-1][:-4]) for f in files]
     # all_ids = [int(f.split('/')[-1][6:-4]) for f in files]
     all_ids.sort()
     trials_per_task = 6
-    max_length = 100
 
     gif_dir = args.log_dir + '/evaluated_gifs/'
-    agent = TecNets(device=device, state_path=args.state_path, demo_dir=args.demo_dir)
-
+    agent = TecNets(device=device)
+    agent.sim_mode(args.emb_model_path, args.ctr_model_path, state_path=args.state_path)
+1
     def rollout(input_tuple):
         ind, task_id = input_tuple
         demo_ind = 1  # for consistency of comparison
@@ -85,7 +84,7 @@ if __name__ == '__main__':
 
         # load xml file
         env = load_env(demo_info)
-        path = agent.sim_test(env, model_path, demo_path, max_length)
+        path = agent.sim_test(env, demo_path)
         # video_filename = gif_dir + 'task_' + str(task_id) + '_' + str(ind % trials_per_task) + '.gif'
         # clip = mpy.ImageSequenceClip([img for img in path['image_obs']], fps=20)
         # clip.write_gif(video_filename, fps=20)

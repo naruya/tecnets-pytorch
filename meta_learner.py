@@ -18,11 +18,11 @@ from utils import load_scale_and_bias
 import cv2
 
 class MetaLearner(object):
-    def __init__(self, device, state_path, demo_dir, log_dir):
+    def __init__(self, device, log_dir):
         
         self.device = device
-        self.demo_dir = demo_dir
         self.log_dir = log_dir
+
         self.emb_net = EmbeddingNet().to(device)
         self.ctr_net = ControlNet().to(device)
         self.emb_net = torch.nn.DataParallel(self.emb_net, device_ids=[0,1])
@@ -33,11 +33,6 @@ class MetaLearner(object):
         
         # for summury writer
         self.num_iter = 0
-
-        # for demo
-        self.scale, self.bias = load_scale_and_bias(state_path)
-        self.scale = torch.from_numpy(np.array(self.scale, np.float32)).to(device)
-        self.bias = torch.from_numpy(np.array(self.bias, np.float32)).to(device)
 
     def save_emb_net(self, model_path):
         torch.save(self.emb_net.state_dict(), model_path)
@@ -97,10 +92,17 @@ class MetaLearner(object):
     def make_test_sentence(self, demo_path, emb_net):
         pass
 
+    def sim_mode(self, emb_model_path, ctr_model_path, state_path):
+        device = self.device
+
+        self.load_emb_net(emb_model_path, device):
+        self.load_ctr_net(ctr_model_path, device):
+        self.scale, self.bias = load_scale_and_bias(state_path)
+        self.scale = torch.from_numpy(np.array(self.scale, np.float32)).to(device)
+        self.bias = torch.from_numpy(np.array(self.bias, np.float32)).to(device)
+
     def sim_test(self, env, model_path, demo_path, make_test_sentence, max_length=100):
         device = self.device
-        self.load_emb_net(model_path['emb'], device)
-        self.load_ctr_net(model_path['ctr'], device)
 
         sentence = make_test_sentence(demo_path, self.emb_net)
 

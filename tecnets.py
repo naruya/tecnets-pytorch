@@ -9,8 +9,8 @@ from meta_learner import MetaLearner
 from utils import vread
 
 class TecNets(MetaLearner):
-    def __init__(self, device, state_path, demo_dir, log_dir):
-        super(TecNets, self).__init__(device, state_path, demo_dir, log_dir)
+    def __init__(self, device, log_dir):
+        super(TecNets, self).__init__(device, log_dir)
 
     def cos_hinge_loss(self, q_sj, U_sj, U_si):
         real = torch.dot(q_sj, U_sj)
@@ -23,19 +23,14 @@ class TecNets(MetaLearner):
         device = self.device
 
         for batch_task in tqdm(task_loader):
-
             batch_task_pre, batch_task_emb, batch_task_ctr = itertools.tee(batch_task, 3)
 
             # ---- make sentences ----
             
-            U_s = {} # support_sentence dict
-            q_s = {} # query_sentence dict
-
-            U_sj_list = [] # ctr_net input sentence
-            q_sj_list = [] # ctr_net input sentence
+            U_s, q_s = {}, {} # support/query_sentence dict
+            U_sj_list, q_sj_list = [], [] # ctr_net input sentences
 
             for task in batch_task_pre:
-
                 U_inps = task['train']['vision']                       # U_n,100,3,125,125
                 U_inps = torch.cat([U_inps[:,0], U_inps[:,-1]], dim=1) # U_n,6,125,125
                 q_inps = task['test']['vision']                        # q_n,100,3,125,125
@@ -68,14 +63,11 @@ class TecNets(MetaLearner):
             # ---- calc loss_ctr ----
 
             # 64x20 -> 6400x20
-            U_sj = torch.stack(U_sj_list).to(device).repeat_interleave(100, dim=0)
-            q_sj = torch.stack(q_sj_list).to(device).repeat_interleave(100, dim=0)
+            U_sj = torch.stack(U_sj_list).repeat_interleave(100, dim=0)
+            q_sj = torch.stack(q_sj_list).repeat_interleave(100, dim=0)
 
             U_vision, U_state, U_action, \
                 q_vision, q_state, q_action = self.stack_demos(batch_task_ctr)
-
-            U_state = torch.matmul(U_state, self.scale) + self.bias
-            q_state = torch.matmul(q_state, self.scale) + self.bias
 
             U_output = self.ctr_net(U_vision, U_sj, U_state)
             q_output = self.ctr_net(q_vision, U_sj, q_state)
@@ -114,11 +106,10 @@ class TecNets(MetaLearner):
             self.meta_train(self, task_loader=task_loader, epoch=None, writer=writer, train=False)
 
     def make_test_sentence(self, demo_path, emb_net):
-        device = self.device
         inp = (np.array(vread(demo_path).transpose(0,3,1,2)[[0,-1]].reshape(1,6,125,125)
                         , np.float32)-127.5)/127.5  # 1,6,125,125
-        inp = torch.from_numpy(inp).to(device)
-        inp = emb_net(inp.to(device))[0]
+        inp = torch.from_numpy(inp).to(self.device)
+        inp = emb_net(inp.to(self.device))[0]
         return  inp / torch.norm(inp)
     
     def sim_test(self, env, model_path, demo_path, max_length=100):
