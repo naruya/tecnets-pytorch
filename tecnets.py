@@ -44,18 +44,14 @@ class TecNets(MetaLearner):
         device = self.device
 
         for batch_task in tqdm(task_loader):
-
             batch_task_pre, batch_task_emb, batch_task_ctr = itertools.tee(batch_task, 3)
 
-            # ---- make sentences ----
-
             U_s, q_s = make_emb_dict(batch_task_pre)
-
-            U_sj_list, q_sj_list = [], [] # ctr_net input sentences
 
             # ---- calc loss_emb ----
 
             loss_emb = 0
+            U_sj_list, q_sj_list = [], [] # ctr_net input sentences
 
             for task in batch_task_emb:
                 jdx = task['task_idx']
