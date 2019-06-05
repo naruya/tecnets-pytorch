@@ -18,7 +18,7 @@ class EmbeddingNet(nn.Module):
         self.ln3 = nn.LayerNorm([h, 13, 13])
         self.ln4 = nn.LayerNorm([h, 5, 5])
         
-        self.fc1 = nn.Linear(400, 200)
+        self.fc1 = nn.Linear(h*5*5, 200)
         self.fc2 = nn.Linear(200, 200)
         self.fc3 = nn.Linear(200, 20)
         
@@ -53,5 +53,6 @@ class EmbeddingNet(nn.Module):
                 init.normal_(m.weight, 0, 0.01)
                 init.constant_(m.bias, 0)
             elif isinstance(m, nn.LayerNorm):
-                init.constant_(m.weight, 1)
+                # init.constant_(m.weight, 1)
+                m.register_parameter('weight', None)
                 init.constant_(m.bias, 0)

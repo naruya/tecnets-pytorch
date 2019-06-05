@@ -57,11 +57,6 @@ class ControlNet(nn.Module):
                 init.normal_(m.weight, 0, 0.01)
                 init.constant_(m.bias, 0)
             elif isinstance(m, nn.LayerNorm):
-                init.constant_(m.weight, 1)
+                # init.constant_(m.weight, 1)
+                m.register_parameter('weight', None)
                 init.constant_(m.bias, 0)
-
-"""
-
-> For all experiments, we ensure that our control network follows a similar architecture to MIL [6] in order to allow fair comparison
-
-"""
