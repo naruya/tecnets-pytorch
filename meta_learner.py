@@ -18,10 +18,11 @@ from utils import load_scale_and_bias
 import cv2
 
 class MetaLearner(object):
-    def __init__(self, device, state_path, demo_dir):
+    def __init__(self, device, state_path, demo_dir, log_dir):
         
         self.device = device
         self.demo_dir = demo_dir
+        self.log_dir = log_dir
         self.emb_net = TaskEmbeddingNet().to(device)
         self.ctr_net = ControlNet().to(device)
         self.emb_net = torch.nn.DataParallel(self.emb_net, device_ids=[0,1])

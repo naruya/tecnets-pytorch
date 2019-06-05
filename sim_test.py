@@ -21,7 +21,6 @@ def load_env(demo_info):
     suffix = xml_filepath[xml_filepath.index('pusher'):]
     prefix = XML_PATH + 'test2_ensure_woodtable_distractor_'
     xml_filepath = str(prefix + suffix)
-    print(xml_filepath)
 
     env = PusherEnv(**{'xml_file':xml_filepath, 'distractors': True})
     return env

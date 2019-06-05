@@ -18,7 +18,6 @@ if __name__ == '__main__':
     parser.add_argument('--demo_dir', type=str, default='../mil/data/sim_push/')
     parser.add_argument('--num_batch_tasks', type=int, default=64)
     parser.add_argument('--state_path', type=str, default="../mil/data/sim_push_common/scale_and_bias_sim_push.pkl")
-    parser.add_argument('--ctr_scale', type=float, default=0.1)
     parser.add_argument('--seed', type=int, default=123)
     args = parser.parse_args()
 
@@ -30,7 +29,7 @@ if __name__ == '__main__':
     print(log_dir)
     os.mkdir(log_dir)
 
-    meta_learner = TecNets(device=device, state_path=args.state_path, demo_dir=args.demo_dir)
+    meta_learner = TecNets(device=device, state_path=args.state_path, demo_dir=args.demo_dir, log_dir=log_dir)
 
     train_task_loader = TaskLoader(MILTaskset(demo_dir=args.demo_dir, train_n_shot=1, test_n_shot=1, mode='train', n_valid=0),
                              batch_size=args.num_batch_tasks)
@@ -43,5 +42,5 @@ if __name__ == '__main__':
         print("# {}".format(epoch+1))
         train_task_loader.reset()
         # valid_task_loader.reset()
-        meta_learner.meta_train(train_task_loader, log_dir, epoch, writer=writer, ctr_scale=args.ctr_scale)
-        # meta_learner.meta_test(valid_task_loader, writer=writer, ctr_scale=args.ctr_scale)
+        meta_learner.meta_train(train_task_loader, epoch, writer=writer)
+        # meta_learner.meta_test(valid_task_loader, writer=writer)
