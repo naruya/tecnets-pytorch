@@ -12,6 +12,10 @@ class TecNets(MetaLearner):
     def __init__(self, device, log_dir):
         super(TecNets, self).__init__(device, log_dir)
 
+        # for summury writer, for passing by reference
+        self.num_iter_tr = [0,]
+        self.num_iter_val = [0,]
+
     def make_emb_dict(self, batch_task):
         device = self.device
 
@@ -42,8 +46,18 @@ class TecNets(MetaLearner):
         _loss = torch.max(zero, 0.1 - real + fake) * 1.0
         return _loss
 
+    def write_board(self, writer, loss_emb, loss_ctr_U, loss_ctr_q, loss, train):
+        num_iter = self.num_iter_tr if train else self.num_iter_val
+        if writer:
+            writer.add_scalar('loss_emb', loss_emb, num_iter[0])
+            writer.add_scalar('loss_ctr_U', loss_ctr_U, num_iter[0])
+            writer.add_scalar('loss_ctr_q', loss_ctr_q, num_iter[0])
+            writer.add_scalar('loss_all', loss, num_iter[0])
+        num_iter[0]+=1
+
     def meta_train(self, task_loader, epoch, writer=None, train=True):
         device = self.device
+        loss_emb_list, loss_ctr_U_list, loss_ctr_q_list, loss_list = [], [], [], []
 
         for batch_task in tqdm(task_loader):
             batch_task_pre, batch_task_emb, batch_task_ctr = itertools.tee(batch_task, 3)
@@ -84,24 +98,25 @@ class TecNets(MetaLearner):
                 self.opt.zero_grad()
                 loss.backward()
                 self.opt.step()
-                self.num_iter += 1
 
-                if writer:
-                    writer.add_scalar('loss_emb', loss_emb.item(), self.num_iter)
-                    writer.add_scalar('loss_ctr_U', loss_ctr_U.item(), self.num_iter)
-                    writer.add_scalar('loss_ctr_q', loss_ctr_q.item(), self.num_iter)
-                    writer.add_scalar('loss_all', loss.item(), self.num_iter)
-            else:
-                if writer:
-                    writer.add_scalar('val_loss_emb', loss_emb.item(), self.num_iter)
-                    writer.add_scalar('val_loss_ctr_U', loss_ctr_U.item(), self.num_iter)
-                    writer.add_scalar('val_loss_ctr_q', loss_ctr_q.item(), self.num_iter)
-                    writer.add_scalar('val_loss_all', loss.item(), self.num_iter)
+            loss_emb_list.append(loss_emb.item())
+            loss_ctr_U_list.append(loss_ctr_U.item())
+            loss_ctr_q_list.append(loss_ctr_q.item())
+            loss_list.append(loss.item())
+
+        # -- end batch tasks
+
+        loss_emb = np.mean(loss_emb_list)
+        loss_ctr_U = np.mean(loss_ctr_U_list)
+        loss_ctr_q = np.mean(loss_ctr_q_list)
+        loss = np.mean(loss_list)
+
+        self.write_board(writer, loss, loss_emb, loss_ctr_U, loss_ctr_q, train)
 
         if train:
-            self.save_emb_net(self.log_dir+"/emb_epoch"+str(epoch)+"_"+f'{loss.item():.4f}'+".pt")
-            self.save_ctr_net(self.log_dir+"/ctr_epoch"+str(epoch)+"_"+f'{loss.item():.4f}'+".pt")
-            self.save_opt(self.log_dir+"/opt_epoch"+str(epoch)+"_"+f'{loss.item():.4f}'+".pt")
+            self.save_emb_net(self.log_dir+"/emb_epoch"+str(epoch)+"_"+f'{loss:.4f}'+".pt")
+            self.save_ctr_net(self.log_dir+"/ctr_epoch"+str(epoch)+"_"+f'{loss:.4f}'+".pt")
+            self.save_opt(self.log_dir+"/opt_epoch"+str(epoch)+"_"+f'{loss:.4f}'+".pt")
 
     def meta_test(self, task_loader, writer=None):
         with torch.no_grad():

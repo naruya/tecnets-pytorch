@@ -25,11 +25,13 @@ if __name__ == '__main__':
     torch.manual_seed(args.seed)
     random.seed(args.seed)
     device = "cuda"
-    writer = SummaryWriter()
-    log_dir = "./logs/" + datetime.now().strftime('%Y%m%d-%H%M%S')+"-B"+str(args.num_batch_tasks)\
-                          +"-train_n_shot"+str(args.train_n_shot)
+    log_dir = "./logs/" + datetime.now().strftime('%m%d_%H%M%S')+"_B"+str(args.num_batch_tasks)\
+                          +"_shot"+str(args.train_n_shot)
     print(log_dir)
     os.mkdir(log_dir)
+
+    train_writer = SummaryWriter("runs/"+log_dir.split("/")[-1]+"_train")
+    valid_writer = SummaryWriter("runs/"+log_dir.split("/")[-1]+"_valid")
 
     meta_learner = TecNets(device=device, log_dir=log_dir)
 
@@ -46,5 +48,5 @@ if __name__ == '__main__':
         print("# {}".format(epoch+1))
         train_task_loader.reset()
         valid_task_loader.reset()
-        meta_learner.meta_train(train_task_loader, epoch, writer=writer)
-        meta_learner.meta_test(valid_task_loader, writer=writer)
+        meta_learner.meta_train(train_task_loader, epoch, writer=train_writer)
+        meta_learner.meta_test(valid_task_loader, writer=valid_writer)

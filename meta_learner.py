@@ -25,14 +25,11 @@ class MetaLearner(object):
 
         self.emb_net = EmbeddingNet().to(device)
         self.ctr_net = ControlNet().to(device)
-        self.emb_net = torch.nn.DataParallel(self.emb_net, device_ids=[0,1])
-        self.ctr_net = torch.nn.DataParallel(self.ctr_net, device_ids=[0,1])
+        self.emb_net = torch.nn.DataParallel(self.emb_net, device_ids=[0,1,2,3])
+        self.ctr_net = torch.nn.DataParallel(self.ctr_net, device_ids=[0,1,2,3])
 
         params = list(self.emb_net.parameters()) + list(self.ctr_net.parameters())
         self.opt = Adam(params, lr=5.0*10e-4)
-        
-        # for summury writer
-        self.num_iter = 0
 
     def save_emb_net(self, model_path):
         torch.save(self.emb_net.state_dict(), model_path)
