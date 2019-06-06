@@ -107,7 +107,7 @@ class TecNets(MetaLearner):
         with torch.no_grad():
             self.emb_net.eval()
             self.ctr_net.eval()
-            self.meta_train(self, task_loader=task_loader, epoch=None, writer=writer, train=False)
+            self.meta_train(task_loader=task_loader, epoch=None, writer=writer, train=False)
 
     def make_test_sentence(self, demo_path, emb_net):
         inp = (np.array(vread(demo_path).transpose(0,3,1,2)[[0,-1]].reshape(1,6,125,125)
