@@ -19,8 +19,10 @@ class TecNets(MetaLearner):
 
         for task in batch_task:
             U_inps = task['train']['vision']                       # U_n,100,3,125,125
-            U_inps = torch.cat([U_inps[:,0], U_inps[:,-1]], dim=1) # U_n,6,125,125
             q_inps = task['test']['vision']                        # q_n,100,3,125,125
+            U_n = len(U_inps)
+            q_n = len(q_inps)
+            U_inps = torch.cat([U_inps[:,0], U_inps[:,-1]], dim=1) # U_n,6,125,125
             q_inps = torch.cat([q_inps[:,0], q_inps[:,-1]], dim=1) # q_n,6,125,125
 
             U_sj = self.emb_net(U_inps.to(device)).mean(0)
@@ -31,7 +33,7 @@ class TecNets(MetaLearner):
             U_s[jdx] = U_sj
             q_s[jdx] = q_sj
 
-        return U_s, q_s
+        return U_s, q_s, U_n, q_n
 
     def cos_hinge_loss(self, q_sj, U_sj, U_si):
         real = torch.dot(q_sj, U_sj)
@@ -46,12 +48,12 @@ class TecNets(MetaLearner):
         for batch_task in tqdm(task_loader):
             batch_task_pre, batch_task_emb, batch_task_ctr = itertools.tee(batch_task, 3)
 
-            U_s, q_s = self.make_emb_dict(batch_task_pre)
+            U_s, q_s, U_n, q_n = self.make_emb_dict(batch_task_pre)
 
             # ---- calc loss_emb ----
 
             loss_emb = 0
-            U_sj_list, q_sj_list = [], [] # ctr_net input sentences
+            U_sj_list = [] # ctr_net input sentences
 
             for task in batch_task_emb:
                 jdx = task['task_idx']
@@ -63,18 +65,16 @@ class TecNets(MetaLearner):
                     loss_emb += self.cos_hinge_loss(q_sj, U_sj, U_si)
 
                 U_sj_list.append(U_sj)
-                q_sj_list.append(q_sj)
 
             # ---- calc loss_ctr ----
 
-            U_sj = torch.stack(U_sj_list).repeat_interleave(100, dim=0) # 64x20 -> 6400x20
-            q_sj = torch.stack(q_sj_list).repeat_interleave(100, dim=0) # 64x20 -> 6400x20
+            U_sj = torch.stack(U_sj_list) # 64x20 -> 6400x20
 
             U_vision, U_state, U_action, \
                 q_vision, q_state, q_action = self.stack_demos(batch_task_ctr)
 
-            U_output = self.ctr_net(U_vision, U_sj, U_state)
-            q_output = self.ctr_net(q_vision, U_sj, q_state)
+            U_output = self.ctr_net(U_vision, U_sj.repeat_interleave(100*U_n, dim=0), U_state)
+            q_output = self.ctr_net(q_vision, U_sj.repeat_interleave(100*q_n, dim=0), q_state)
             loss_ctr_U = self.loss_fn(U_output, U_action)*len(U_vision)*0.1
             loss_ctr_q = self.loss_fn(q_output, q_action)*len(q_vision)*0.1
 
