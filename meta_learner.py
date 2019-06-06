@@ -95,8 +95,8 @@ class MetaLearner(object):
     def sim_mode(self, emb_model_path, ctr_model_path, state_path):
         device = self.device
 
-        self.load_emb_net(emb_model_path, device):
-        self.load_ctr_net(ctr_model_path, device):
+        self.load_emb_net(emb_model_path, device)
+        self.load_ctr_net(ctr_model_path, device)
         self.scale, self.bias = load_scale_and_bias(state_path)
         self.scale = torch.from_numpy(np.array(self.scale, np.float32)).to(device)
         self.bias = torch.from_numpy(np.array(self.bias, np.float32)).to(device)

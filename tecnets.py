@@ -46,7 +46,7 @@ class TecNets(MetaLearner):
         for batch_task in tqdm(task_loader):
             batch_task_pre, batch_task_emb, batch_task_ctr = itertools.tee(batch_task, 3)
 
-            U_s, q_s = make_emb_dict(batch_task_pre)
+            U_s, q_s = self.make_emb_dict(batch_task_pre)
 
             # ---- calc loss_emb ----
 

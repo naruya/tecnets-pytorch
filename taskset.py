@@ -47,7 +47,7 @@ class MILTaskset(Taskset):
 
     def __getitem__(self, idx):
 
-        if valid:
+        if self.valid:
             idx += self.n_train
 
         # TODO: とりあえず今は1-shotの場合しか想定していないので，増やすとおかしくなる
