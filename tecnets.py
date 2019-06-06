@@ -46,15 +46,6 @@ class TecNets(MetaLearner):
         _loss = torch.max(zero, 0.1 - real + fake) * 1.0
         return _loss
 
-    def write_board(self, writer, loss_emb, loss_ctr_U, loss_ctr_q, loss, train):
-        num_iter = self.num_iter_tr if train else self.num_iter_val
-        if writer:
-            writer.add_scalar('loss_emb', loss_emb, num_iter[0])
-            writer.add_scalar('loss_ctr_U', loss_ctr_U, num_iter[0])
-            writer.add_scalar('loss_ctr_q', loss_ctr_q, num_iter[0])
-            writer.add_scalar('loss_all', loss, num_iter[0])
-        num_iter[0]+=1
-
     def meta_train(self, task_loader, epoch, writer=None, train=True):
         device = self.device
         loss_emb_list, loss_ctr_U_list, loss_ctr_q_list, loss_list = [], [], [], []
@@ -111,7 +102,13 @@ class TecNets(MetaLearner):
         loss_ctr_q = np.mean(loss_ctr_q_list)
         loss = np.mean(loss_list)
 
-        self.write_board(writer, loss, loss_emb, loss_ctr_U, loss_ctr_q, train)
+        num_iter = self.num_iter_tr if train else self.num_iter_val
+        if writer:
+            writer.add_scalar('loss_emb', loss_emb, num_iter[0])
+            writer.add_scalar('loss_ctr_U', loss_ctr_U, num_iter[0])
+            writer.add_scalar('loss_ctr_q', loss_ctr_q, num_iter[0])
+            writer.add_scalar('loss_all', loss, num_iter[0])
+        num_iter[0]+=1
 
         if train:
             self.save_emb_net(self.log_dir+"/emb_epoch"+str(epoch)+"_"+f'{loss:.4f}'+".pt")
