@@ -99,9 +99,9 @@ class TecNets(MetaLearner):
                     writer.add_scalar('val_loss_all', loss.item(), self.num_iter)
 
         if train:
-            self.save_emb_net(self.log_dir+"/emb_epoch"+str(epoch)+"_"+f'{loss:.4f}'+".pt")
-            self.save_ctr_net(self.log_dir+"/ctr_epoch"+str(epoch)+"_"+f'{loss:.4f}'+".pt")
-            self.save_opt(self.log_dir+"/opt_epoch"+str(epoch)+"_"+f'{loss:.4f}'+".pt")
+            self.save_emb_net(self.log_dir+"/emb_epoch"+str(epoch)+"_"+f'{loss.item():.4f}'+".pt")
+            self.save_ctr_net(self.log_dir+"/ctr_epoch"+str(epoch)+"_"+f'{loss.item():.4f}'+".pt")
+            self.save_opt(self.log_dir+"/opt_epoch"+str(epoch)+"_"+f'{loss.item():.4f}'+".pt")
 
     def meta_test(self, task_loader, writer=None):
         with torch.no_grad():
