@@ -18,7 +18,6 @@ class TecNets(MetaLearner):
 
     def make_emb_dict(self, batch_task):
         device = self.device
-
         U_s, q_s = {}, {} # support/query_sentence dict
 
         for task in batch_task:
