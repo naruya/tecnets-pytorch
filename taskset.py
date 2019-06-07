@@ -53,9 +53,9 @@ class MILTaskset(Taskset):
         train_indices = np.random.choice(range(0,6), size=self.train_n_shot, replace=False)
         test_indices = np.random.choice(range(18,24), size=self.test_n_shot, replace=False)
 
-        train_demos = [torch.load(os.path.join(self.demo_dir, "cache", "task"+str(idx), "demo"+str(j)+".pt"))
+        train_demos = [torch.load(os.path.join(self.demo_dir, "cache_normalized", "task"+str(idx), "demo"+str(j)+".pt"))
                        for j in train_indices]
-        test_demos = [torch.load(os.path.join(self.demo_dir, "cache", "task"+str(idx), "demo"+str(j)+".pt"))
+        test_demos = [torch.load(os.path.join(self.demo_dir, "cache_normalized", "task"+str(idx), "demo"+str(j)+".pt"))
                       for j in test_indices]
 
         return {
