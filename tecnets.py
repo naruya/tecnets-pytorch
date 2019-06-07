@@ -23,8 +23,6 @@ class TecNets(MetaLearner):
         for task in batch_task:
             U_inps = task['train']['vision']                       # U_n,100,3,125,125
             q_inps = task['test']['vision']                        # q_n,100,3,125,125
-            U_n = len(U_inps)
-            q_n = len(q_inps)
             U_inps = torch.cat([U_inps[:,0], U_inps[:,-1]], dim=1) # U_n,6,125,125
             q_inps = torch.cat([q_inps[:,0], q_inps[:,-1]], dim=1) # q_n,6,125,125
 
@@ -36,7 +34,7 @@ class TecNets(MetaLearner):
             U_s[jdx] = U_sj
             q_s[jdx] = q_sj
 
-        return U_s, q_s, U_n, q_n
+        return U_s, q_s, len(U_inps), len(q_inps)
 
     def cos_hinge_loss(self, q_sj, U_sj, U_si):
         real = torch.dot(q_sj, U_sj)
@@ -72,10 +70,9 @@ class TecNets(MetaLearner):
 
             # ---- calc loss_ctr ----
 
-            U_sj = torch.stack(U_sj_list) # 64x20 -> 6400x20
-
             U_vision, U_state, U_action, \
                 q_vision, q_state, q_action = self.stack_demos(batch_task_ctr)
+            U_sj = torch.stack(U_sj_list)
 
             U_output = self.ctr_net(U_vision, U_sj.repeat_interleave(100*U_n, dim=0), U_state)
             q_output = self.ctr_net(q_vision, U_sj.repeat_interleave(100*q_n, dim=0), q_state)
