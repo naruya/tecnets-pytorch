@@ -19,8 +19,8 @@ class MILTaskset(Taskset):
         self.valid = valid
         self.val_size = val_size
 
-        if os.path.exists(os.path.join(demo_dir, "cache")):
-            print("cache exists")
+        if os.path.exists(os.path.join(demo_dir, "cache_normalized")):
+            print("cache_normalized exists")
         else:
             make_cache(demo_dir)
 
@@ -54,16 +54,16 @@ class MILTaskset(Taskset):
         test_indices = np.random.choice(range(18,24), size=self.test_n_shot, replace=False)
 
         train_demos = [torch.load(os.path.join(self.demo_dir, "cache", "task"+str(idx), "demo"+str(j)+".pt"))
-                       for j in train_indices] # n,100,125,125,3
+                       for j in train_indices]
         test_demos = [torch.load(os.path.join(self.demo_dir, "cache", "task"+str(idx), "demo"+str(j)+".pt"))
-                      for j in test_indices] # n,100,125,125,3
+                      for j in test_indices]
 
         return {
-            "train-vision": ((torch.stack([demo['vision'] for demo in train_demos]).permute(0,1,4,2,3).to(torch.float32)-127.5)/127.5),
-            "train-state": torch.stack([torch.matmul(demo['state'], self.scale) + self.bias for demo in train_demos]),
+            "train-vision": torch.stack([demo['vision'] for demo in train_demos]),
+            "train-state": torch.stack([demo['state'] for demo in train_demos]),
             "train-action": torch.stack([demo['action'] for demo in train_demos]),
-            "test-vision": ((torch.stack([demo['vision'] for demo in test_demos]).permute(0,1,4,2,3).to(torch.float32)-127.5)/127.5),
-            "test-state": torch.stack([torch.matmul(demo['state'], self.scale) + self.bias for demo in test_demos]),
+            "test-vision": torch.stack([demo['vision'] for demo in test_demos]),
+            "test-state": torch.stack([demo['state'] for demo in test_demos]),
             "test-action": torch.stack([demo['action'] for demo in test_demos]),
             'idx': idx
         }

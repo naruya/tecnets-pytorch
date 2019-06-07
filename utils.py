@@ -42,9 +42,13 @@ def load_scale_and_bias(data_path):
 
 def make_cache(demo_dir):
 
-    print("making cache")
+    print("making cache_normalized")
 
-    os.mkdir(os.path.join(demo_dir, "cache"))
+    os.mkdir(os.path.join(demo_dir, "cache_normalized"))
+
+    scale, bias = load_scale_and_bias(state_path)
+    scale = torch.from_numpy(np.array(scale, np.float32))
+    bias = torch.from_numpy(np.array(bias, np.float32))
 
     gif_dirs = natsorted(glob.glob(os.path.join(demo_dir, "object_*")))
     pkl_files = natsorted(glob.glob(os.path.join(demo_dir, "*.pkl")))
@@ -52,11 +56,11 @@ def make_cache(demo_dir):
 
     for i in tqdm(range(n_tasks)):
 
-        os.mkdir(os.path.join(demo_dir, "cache", "task"+str(i)))
+        os.mkdir(os.path.join(demo_dir, "cache_normalized", "task"+str(i)))
 
         gif_dir = gif_dirs[i]
         gifs = natsorted(glob.glob(os.path.join(gif_dir, "cond*")))
-        vision = [vread(path) for path in np.array(gifs)] # n,100,125,125,125,3
+        vision = [vread(path) for path in np.array(gifs)] # n,100,125,125,3
 
         pkl_file = pkl_files[i]
         with open(pkl_file, 'rb') as f:
@@ -66,10 +70,14 @@ def make_cache(demo_dir):
 
         n_demos = len(vision)
 
+        vision = [(torch.from_numpy(v).permute(0,3,1,2).to(torch.float32)-127.5)/127.5 for v in vision]
+        state = [torch.matmul(torch.from_numpy(s), scale) + bias for s in state]
+        action = [torch.from_numpy(a) for a in action]
+
         for j in range(n_demos):
             demo = {
-                'vision': torch.from_numpy(vision[j]), # not np.float32 but np.uint8 (for memory saving)
-                'state': torch.from_numpy(state[j]), # np.float32
-                'action': torch.from_numpy(action[j]) # np.float32
+                'vision': vision[j],
+                'state': state[j],
+                'action': action[j]
             }
-            torch.save(demo, os.path.join(demo_dir, "cache", "task"+str(i), "demo"+str(j)+".pt"))
+            torch.save(demo, os.path.join(demo_dir, "cache_normalized", "task"+str(i), "demo"+str(j)+".pt"))
