@@ -40,8 +40,8 @@ class TecNets(MetaLearner):
         real = torch.dot(q_sj, U_sj)
         fake = torch.dot(q_sj, U_si)
         zero = torch.zeros(1).to(self.device)
-        _loss = torch.max(zero, 0.1 - real + fake) * 1.0
-        return _loss
+        loss = torch.max(zero, 0.1 - real + fake)
+        return loss
 
     def meta_train(self, task_loader, epoch, writer=None, train=True):
         device = self.device
@@ -64,7 +64,7 @@ class TecNets(MetaLearner):
 
                 for idx, U_si in list(U_s.items()):
                     if jdx == idx: continue
-                    loss_emb += self.cos_hinge_loss(q_sj, U_sj, U_si)
+                    loss_emb += self.cos_hinge_loss(q_sj, U_sj, U_si) * 1.0
 
                 U_sj_list.append(U_sj)
 
@@ -76,8 +76,8 @@ class TecNets(MetaLearner):
 
             U_output = self.ctr_net(U_vision, U_sj.repeat_interleave(100*U_n, dim=0), U_state)
             q_output = self.ctr_net(q_vision, U_sj.repeat_interleave(100*q_n, dim=0), q_state)
-            loss_ctr_U = self.loss_fn(U_output, U_action)*len(U_vision)*0.1
-            loss_ctr_q = self.loss_fn(q_output, q_action)*len(q_vision)*0.1
+            loss_ctr_U = self.loss_fn(U_output, U_action) * len(U_vision) * 0.1
+            loss_ctr_q = self.loss_fn(q_output, q_action) * len(q_vision) * 0.1
 
             loss = loss_emb + loss_ctr_U + loss_ctr_q
 
