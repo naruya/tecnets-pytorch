@@ -93,7 +93,7 @@ class TecNets(MetaLearner):
 
             start = time.time() # timer4
 
-            loss_emb, loss_ctr_U, loss_ctr_q = 0, 0, 0
+            loss_ctr_U, loss_ctr_q = 0, 0
 
             for i in range(len(batch_task)):
                 U_v = U_vision[i].view(U_n*100,3,125,125)
