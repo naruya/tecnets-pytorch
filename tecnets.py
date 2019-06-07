@@ -18,32 +18,29 @@ class TecNets(MetaLearner):
         self.num_iter_tr = [0,]
         self.num_iter_val = [0,]
 
-    def make_emb_dict(self, batch_task):
+    def make_emb_dict(self, batch_vision, batch_jdx, normalize):
         device = self.device
-        U_s, q_s = {}, {} # support/query_sentence dict
+        s_dict = {}
 
-        for task in batch_task:
-            U_inps = task['train']['vision']                       # U_n,100,3,125,125
-            q_inps = task['test']['vision']                        # q_n,100,3,125,125
-            U_inps = torch.cat([U_inps[:,0], U_inps[:,-1]], dim=1) # U_n,6,125,125
-            q_inps = torch.cat([q_inps[:,0], q_inps[:,-1]], dim=1) # q_n,6,125,125
+        for vision, jdx in zip(batch_vision, batch_jdx): # k,100,3,125,125
+            inps = torch.cat([vision[:,0], vision[:,-1]], dim=1) # k,6,125,125
+            sj = self.emb_net(inps.to(device))
 
-            U_sj = self.emb_net(U_inps.to(device)).mean(0)
-            U_sj = U_sj / torch.norm(U_sj)
-            q_sj = self.emb_net(q_inps.to(device))[0]
+            if normalize:
+                sj = sj.mean(0)
+                sj = sj / torch.norm(sj)
+            else:
+                sj = sj[0]
 
-            jdx = task['task_idx']
-            U_s[jdx] = U_sj
-            q_s[jdx] = q_sj
+            s_dict[jdx.item()] = sj
 
-        return U_s, q_s, len(U_inps), len(q_inps)
+        return s_dict, len(inps)
 
     def cos_hinge_loss(self, q_sj, U_sj, U_si):
         real = torch.dot(q_sj, U_sj)
         fake = torch.dot(q_sj, U_si)
         zero = torch.zeros(1).to(self.device)
-        loss = torch.max(zero, 0.1 - real + fake)
-        return loss
+        return torch.max(zero, 0.1 - real + fake)
 
     def meta_train(self, task_loader, epoch, writer=None, train=True):
         device = self.device
@@ -53,12 +50,20 @@ class TecNets(MetaLearner):
 
         for batch_task in tqdm(task_loader):
 
+            U_vision = batch_task["train-vision"].to(device) # B,U_n,100,3,125,125
+            U_state = batch_task["train-state"].to(device)   # B,U_n,100,20
+            U_action = batch_task["train-action"].to(device) # B,U_n,100,7
+            q_vision = batch_task["test-vision"].to(device)  # B,q_n,100,3,125,125
+            q_state = batch_task["test-state"].to(device)    # B,q_n,100,20
+            q_action = batch_task["test-action"].to(device)  # B,q_n,100,7
+            batch_jdx = batch_task["idx"].to(device)         # B
+
             elapsed_time = time.time() - start
             print ("timer1. elapsed_time:{0}".format(elapsed_time) + "[sec]") # 2.5s
 
-            batch_task_pre, batch_task_emb, batch_task_ctr = itertools.tee(batch_task, 3)
-
-            U_s, q_s, U_n, q_n = self.make_emb_dict(batch_task_pre)
+            U_s, U_n = self.make_emb_dict(U_vision, batch_jdx, True)
+            q_s, q_n = self.make_emb_dict(q_vision, batch_jdx, False)
+            assert U_s.keys() == q_s.keys(), ""
 
             # ---- calc loss_emb ----
 
@@ -67,12 +72,8 @@ class TecNets(MetaLearner):
 
             start = time.time() # timer2
 
-            for task in batch_task_emb:
-                jdx = task['task_idx']
-                U_sj = U_s[jdx]
-                q_sj = q_s[jdx]
-
-                for idx, U_si in list(U_s.items()):
+            for (jdx, q_sj), (_, U_sj) in zip(q_s.items(), U_s.items()):
+                for (idx, U_si) in U_s.items():
                     if jdx == idx: continue
                     loss_emb += self.cos_hinge_loss(q_sj, U_sj, U_si) * 1.0
 
@@ -85,14 +86,19 @@ class TecNets(MetaLearner):
 
             start = time.time() # timer3
 
-            U_vision, U_state, U_action, \
-                q_vision, q_state, q_action = self.stack_demos(batch_task_ctr)
-            U_sj = torch.stack(U_sj_list)
+            U_sj = torch.stack(U_sj_list) # U_n, 20
 
             elapsed_time = time.time() - start
             print ("timer3. elapsed_time:{0}".format(elapsed_time) + "[sec]") # 2.1s
 
             start = time.time() # timer4
+
+            U_vision = U_vision.view(-1,3,125,125)
+            U_state = U_state.view(-1,20)
+            U_action = U_action.view(-1,7)
+            q_vision = q_vision.view(-1,3,125,125)
+            q_state = q_state.view(-1,20)
+            q_action = q_action.view(-1,7)
 
             U_output = self.ctr_net(U_vision, U_sj.repeat_interleave(100*U_n, dim=0), U_state)
             q_output = self.ctr_net(q_vision, U_sj.repeat_interleave(100*q_n, dim=0), q_state)

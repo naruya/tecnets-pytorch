@@ -8,7 +8,7 @@ from tensorboardX import SummaryWriter
 import torch
 
 from taskset import MILTaskset
-from torch_utils import TaskLoader
+from torch.utils.data import DataLoader as TaskLoader
 from tecnets import TecNets
 
 
@@ -37,16 +37,16 @@ if __name__ == '__main__':
 
     train_task_loader = TaskLoader(MILTaskset(
         demo_dir=args.demo_dir, state_path=args.state_path,
-        train_n_shot=args.train_n_shot, test_n_shot=1, val_size=0.1), batch_size=args.num_batch_tasks)
+        train_n_shot=args.train_n_shot, test_n_shot=1, val_size=0.1),
+                                   batch_size=args.num_batch_tasks, shuffle=True)
     valid_task_loader = TaskLoader(MILTaskset(
         demo_dir=args.demo_dir, state_path=args.state_path,
-        train_n_shot=args.train_n_shot, test_n_shot=1, valid=True, val_size=0.1), batch_size=args.num_batch_tasks)
+        train_n_shot=args.train_n_shot, test_n_shot=1, valid=True, val_size=0.1),
+                                   batch_size=args.num_batch_tasks, shuffle=True)
 
     meta_epochs = 5850
 
     for epoch in range(meta_epochs):
         print("# {}".format(epoch+1))
-        train_task_loader.reset()
-        valid_task_loader.reset()
         meta_learner.meta_train(train_task_loader, epoch, writer=train_writer)
         meta_learner.meta_test(valid_task_loader, writer=valid_writer)

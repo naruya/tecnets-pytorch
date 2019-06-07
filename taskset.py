@@ -3,7 +3,7 @@ import glob
 import torch
 import numpy as np
 from natsort import natsorted
-from torch_utils import Taskset
+from torch.utils.data import Dataset as Taskset
 from utils import make_cache
 from utils import load_scale_and_bias
 
@@ -54,24 +54,16 @@ class MILTaskset(Taskset):
         test_indices = np.random.choice(range(18,24), size=self.test_n_shot, replace=False)
 
         train_demos = [torch.load(os.path.join(self.demo_dir, "cache", "task"+str(idx), "demo"+str(j)+".pt"))
-                       for j in train_indices] # n,100,125,125,125,3
+                       for j in train_indices] # n,100,125,125,3
         test_demos = [torch.load(os.path.join(self.demo_dir, "cache", "task"+str(idx), "demo"+str(j)+".pt"))
-                      for j in test_indices] # n,100,125,125,125,3
+                      for j in test_indices] # n,100,125,125,3
 
         return {
-            "train": {
-                "vision": ((torch.stack(
-                    [demo['vision'] for demo in train_demos]).permute(0,1,4,2,3).to(torch.float32)-127.5)/127.5),
-                "state": torch.stack([
-                    torch.matmul(demo['state'], self.scale) + self.bias for demo in train_demos]),
-                "action": torch.stack([demo['action'] for demo in train_demos])
-            },
-            "test": {
-                "vision": ((torch.stack([
-                    demo['vision'] for demo in test_demos]).permute(0,1,4,2,3).to(torch.float32)-127.5)/127.5),
-                "state": torch.stack([
-                    torch.matmul(demo['state'], self.scale) + self.bias for demo in test_demos]),
-                "action": torch.stack([demo['action'] for demo in test_demos])
-            }, 
-            'task_idx': idx
+            "train-vision": ((torch.stack([demo['vision'] for demo in train_demos]).permute(0,1,4,2,3).to(torch.float32)-127.5)/127.5),
+            "train-state": torch.stack([torch.matmul(demo['state'], self.scale) + self.bias for demo in train_demos]),
+            "train-action": torch.stack([demo['action'] for demo in train_demos]),
+            "test-vision": ((torch.stack([demo['vision'] for demo in test_demos]).permute(0,1,4,2,3).to(torch.float32)-127.5)/127.5),
+            "test-state": torch.stack([torch.matmul(demo['state'], self.scale) + self.bias for demo in test_demos]),
+            "test-action": torch.stack([demo['action'] for demo in test_demos]),
+            'idx': idx
         }

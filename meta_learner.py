@@ -25,8 +25,8 @@ class MetaLearner(object):
 
         self.emb_net = EmbeddingNet().to(device)
         self.ctr_net = ControlNet().to(device)
-        self.emb_net = torch.nn.DataParallel(self.emb_net, device_ids=[0,1,2,3])
-        self.ctr_net = torch.nn.DataParallel(self.ctr_net, device_ids=[0,1,2,3])
+        self.emb_net = torch.nn.DataParallel(self.emb_net, device_ids=[0])
+        self.ctr_net = torch.nn.DataParallel(self.ctr_net, device_ids=[0])
 
         params = list(self.emb_net.parameters()) + list(self.ctr_net.parameters())
         self.opt = Adam(params, lr=5.0*10e-4)
@@ -51,34 +51,6 @@ class MetaLearner(object):
 
     def loss_fn(self, output, action):
         return F.mse_loss(output, action)
-
-    def stack_demos(self, batch_task):
-        device = self.device
-        
-        train_vision_list = []
-        train_state_list = []
-        train_action_list = []
-        test_vision_list = []
-        test_state_list = []
-        test_action_list = []
-
-        for task in batch_task:
-            train_vision_list.extend(list(task['train']['vision']))
-            train_state_list.extend(list(task['train']['state']))
-            train_action_list.extend(list(task['train']['action']))
-            test_vision_list.extend(list(task['test']['vision']))
-            test_state_list.extend(list(task['test']['state']))
-            test_action_list.extend(list(task['test']['action']))
-
-        train_vision = torch.cat(train_vision_list, 0).to(device)
-        train_state = torch.cat(train_state_list, 0).to(device)
-        train_action = torch.cat(train_action_list, 0).to(device)
-        test_vision = torch.cat(test_vision_list, 0).to(device)
-        test_state = torch.cat(test_state_list, 0).to(device)
-        test_action = torch.cat(test_action_list, 0).to(device)
-
-        return train_vision, train_state, train_action, \
-                test_vision, test_state, test_action
 
     def meta_train(self, task_loader):
         pass
