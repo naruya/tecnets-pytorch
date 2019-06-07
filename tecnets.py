@@ -49,12 +49,12 @@ class TecNets(MetaLearner):
         device = self.device
         loss_emb_list, loss_ctr_U_list, loss_ctr_q_list, loss_list = [], [], [], []
 
-        start = time.time() # 1
+        start = time.time() # timer1
 
         for batch_task in tqdm(task_loader):
 
             elapsed_time = time.time() - start
-            print ("1. elapsed_time:{0}".format(elapsed_time) + "[sec]")
+            print ("timer1. elapsed_time:{0}".format(elapsed_time) + "[sec]")
 
             batch_task_pre, batch_task_emb, batch_task_ctr = itertools.tee(batch_task, 3)
 
@@ -65,7 +65,7 @@ class TecNets(MetaLearner):
             loss_emb = 0
             U_sj_list = [] # ctr_net input sentences
 
-            start = time.time() # 2
+            start = time.time() # timer2
 
             for task in batch_task_emb:
                 jdx = task['task_idx']
@@ -79,18 +79,20 @@ class TecNets(MetaLearner):
                 U_sj_list.append(U_sj)
 
             elapsed_time = time.time() - start
-            print ("2. elapsed_time:{0}".format(elapsed_time) + "[sec]")
+            print ("timer2. elapsed_time:{0}".format(elapsed_time) + "[sec]")
 
             # ---- calc loss_ctr ----
 
-            start = time.time() # 3
+            start = time.time() # timer3
 
             U_vision, U_state, U_action, \
                 q_vision, q_state, q_action = self.stack_demos(batch_task_ctr)
             U_sj = torch.stack(U_sj_list)
 
             elapsed_time = time.time() - start
-            print ("3. elapsed_time:{0}".format(elapsed_time) + "[sec]")
+            print ("timer3. elapsed_time:{0}".format(elapsed_time) + "[sec]")
+
+            start = time.time() # timer4
 
             U_output = self.ctr_net(U_vision, U_sj.repeat_interleave(100*U_n, dim=0), U_state)
             q_output = self.ctr_net(q_vision, U_sj.repeat_interleave(100*q_n, dim=0), q_state)
@@ -99,7 +101,10 @@ class TecNets(MetaLearner):
 
             loss = loss_emb + loss_ctr_U + loss_ctr_q
 
-            start = time.time() # 4
+            elapsed_time = time.time() - start
+            print ("timer4. elapsed_time:{0}".format(elapsed_time) + "[sec]")
+
+            start = time.time() # timer5
 
             if train:
                 self.opt.zero_grad()
@@ -107,7 +112,7 @@ class TecNets(MetaLearner):
                 self.opt.step()
 
             elapsed_time = time.time() - start
-            print ("4. elapsed_time:{0}".format(elapsed_time) + "[sec]")
+            print ("timer5. elapsed_time:{0}".format(elapsed_time) + "[sec]")
 
             loss_emb_list.append(loss_emb.item())
             loss_ctr_U_list.append(loss_ctr_U.item())
