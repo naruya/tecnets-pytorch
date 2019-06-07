@@ -86,24 +86,27 @@ class TecNets(MetaLearner):
 
             start = time.time() # timer3
 
-            U_sj = torch.stack(U_sj_list) # U_n, 20
+#             U_sj = torch.stack(U_sj_list) # U_n, 20
 
             elapsed_time = time.time() - start
             print ("timer3. elapsed_time:{0}".format(elapsed_time) + "[sec]") # 2.1s
 
             start = time.time() # timer4
 
-            U_vision = U_vision.view(-1,3,125,125)
-            U_state = U_state.view(-1,20)
-            U_action = U_action.view(-1,7)
-            q_vision = q_vision.view(-1,3,125,125)
-            q_state = q_state.view(-1,20)
-            q_action = q_action.view(-1,7)
+            loss_emb, loss_ctr_U, loss_ctr_q = 0, 0, 0
 
-            U_output = self.ctr_net(U_vision, U_sj.repeat_interleave(100*U_n, dim=0), U_state)
-            q_output = self.ctr_net(q_vision, U_sj.repeat_interleave(100*q_n, dim=0), q_state)
-            loss_ctr_U = self.loss_fn(U_output, U_action) * len(U_vision) * 0.1
-            loss_ctr_q = self.loss_fn(q_output, q_action) * len(q_vision) * 0.1
+            for i in range(len(batch_task)):
+                U_v = U_vision[i].view(U_n*100,3,125,125)
+                U_s = U_state[i].view(U_n*100,20)
+                U_a = U_action[i].view(U_n*100,7)
+                q_v = q_vision[i].view(q_n*100,3,125,125)
+                q_s = q_state[i].view(q_n*100,20)
+                q_a = q_action[i].view(q_n*100,7)
+
+                U_output = self.ctr_net(U_v, U_sj[i].repeat_interleave(100*U_n, dim=0), U_s)
+                q_output = self.ctr_net(q_v, U_sj[i].repeat_interleave(100*q_n, dim=0), q_s)
+                loss_ctr_U += self.loss_fn(U_output, U_a) * len(U_v) * 0.1
+                loss_ctr_q += self.loss_fn(q_output, q_a) * len(q_v) * 0.1
 
             loss = loss_emb + loss_ctr_U + loss_ctr_q
 
