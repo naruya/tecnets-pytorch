@@ -22,7 +22,7 @@ class MILTaskset(Taskset):
         if os.path.exists(os.path.join(demo_dir, "cache_normalized")):
             print("cache_normalized exists")
         else:
-            make_cache(demo_dir)
+            make_cache(demo_dir, state_path)
 
         # gif & pkl for all tasks
         gif_dirs = natsorted(glob.glob(os.path.join(demo_dir, "object_*")))

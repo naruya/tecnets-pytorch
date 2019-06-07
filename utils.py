@@ -40,7 +40,7 @@ def load_scale_and_bias(data_path):
     return scale, bias
 
 
-def make_cache(demo_dir):
+def make_cache(demo_dir, state_path):
 
     print("making cache_normalized")
 
