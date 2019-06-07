@@ -54,7 +54,7 @@ class TecNets(MetaLearner):
         for batch_task in tqdm(task_loader):
 
             elapsed_time = time.time() - start
-            print ("timer1. elapsed_time:{0}".format(elapsed_time) + "[sec]")
+            print ("timer1. elapsed_time:{0}".format(elapsed_time) + "[sec]") # 2.5s
 
             batch_task_pre, batch_task_emb, batch_task_ctr = itertools.tee(batch_task, 3)
 
@@ -79,7 +79,7 @@ class TecNets(MetaLearner):
                 U_sj_list.append(U_sj)
 
             elapsed_time = time.time() - start
-            print ("timer2. elapsed_time:{0}".format(elapsed_time) + "[sec]")
+            print ("timer2. elapsed_time:{0}".format(elapsed_time) + "[sec]") # 0.3s
 
             # ---- calc loss_ctr ----
 
@@ -90,7 +90,7 @@ class TecNets(MetaLearner):
             U_sj = torch.stack(U_sj_list)
 
             elapsed_time = time.time() - start
-            print ("timer3. elapsed_time:{0}".format(elapsed_time) + "[sec]")
+            print ("timer3. elapsed_time:{0}".format(elapsed_time) + "[sec]") # 2.1s
 
             start = time.time() # timer4
 
@@ -102,7 +102,7 @@ class TecNets(MetaLearner):
             loss = loss_emb + loss_ctr_U + loss_ctr_q
 
             elapsed_time = time.time() - start
-            print ("timer4. elapsed_time:{0}".format(elapsed_time) + "[sec]")
+            print ("timer4. elapsed_time:{0}".format(elapsed_time) + "[sec]") # 0.4s
 
             start = time.time() # timer5
 
@@ -112,7 +112,7 @@ class TecNets(MetaLearner):
                 self.opt.step()
 
             elapsed_time = time.time() - start
-            print ("timer5. elapsed_time:{0}".format(elapsed_time) + "[sec]")
+            print ("timer5. elapsed_time:{0}".format(elapsed_time) + "[sec]") # 0.7s
 
             loss_emb_list.append(loss_emb.item())
             loss_ctr_U_list.append(loss_ctr_U.item())
