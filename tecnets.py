@@ -8,6 +8,8 @@ from collections import OrderedDict
 from meta_learner import MetaLearner
 from utils import vread
 
+import time
+
 class TecNets(MetaLearner):
     def __init__(self, device, log_dir):
         super(TecNets, self).__init__(device, log_dir)
@@ -47,7 +49,13 @@ class TecNets(MetaLearner):
         device = self.device
         loss_emb_list, loss_ctr_U_list, loss_ctr_q_list, loss_list = [], [], [], []
 
+        start = time.time() # 1
+
         for batch_task in tqdm(task_loader):
+
+            elapsed_time = time.time() - start
+            print ("1. elapsed_time:{0}".format(elapsed_time) + "[sec]")
+
             batch_task_pre, batch_task_emb, batch_task_ctr = itertools.tee(batch_task, 3)
 
             U_s, q_s, U_n, q_n = self.make_emb_dict(batch_task_pre)
@@ -56,6 +64,8 @@ class TecNets(MetaLearner):
 
             loss_emb = 0
             U_sj_list = [] # ctr_net input sentences
+
+            start = time.time() # 2
 
             for task in batch_task_emb:
                 jdx = task['task_idx']
@@ -68,11 +78,19 @@ class TecNets(MetaLearner):
 
                 U_sj_list.append(U_sj)
 
+            elapsed_time = time.time() - start
+            print ("2. elapsed_time:{0}".format(elapsed_time) + "[sec]")
+
             # ---- calc loss_ctr ----
+
+            start = time.time() # 3
 
             U_vision, U_state, U_action, \
                 q_vision, q_state, q_action = self.stack_demos(batch_task_ctr)
             U_sj = torch.stack(U_sj_list)
+
+            elapsed_time = time.time() - start
+            print ("3. elapsed_time:{0}".format(elapsed_time) + "[sec]")
 
             U_output = self.ctr_net(U_vision, U_sj.repeat_interleave(100*U_n, dim=0), U_state)
             q_output = self.ctr_net(q_vision, U_sj.repeat_interleave(100*q_n, dim=0), q_state)
@@ -81,15 +99,22 @@ class TecNets(MetaLearner):
 
             loss = loss_emb + loss_ctr_U + loss_ctr_q
 
+            start = time.time() # 4
+
             if train:
                 self.opt.zero_grad()
                 loss.backward()
                 self.opt.step()
 
+            elapsed_time = time.time() - start
+            print ("4. elapsed_time:{0}".format(elapsed_time) + "[sec]")
+
             loss_emb_list.append(loss_emb.item())
             loss_ctr_U_list.append(loss_ctr_U.item())
             loss_ctr_q_list.append(loss_ctr_q.item())
             loss_list.append(loss.item())
+
+            start = time.time() # 1
 
         # -- end batch tasks
 
