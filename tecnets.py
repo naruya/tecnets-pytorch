@@ -103,8 +103,8 @@ class TecNets(MetaLearner):
                 q_s = q_state[i].view(q_n*100,20)
                 q_a = q_action[i].view(q_n*100,7)
 
-                U_output = self.ctr_net(U_v, U_sj[i].repeat_interleave(100*U_n, dim=0), U_s)
-                q_output = self.ctr_net(q_v, U_sj[i].repeat_interleave(100*q_n, dim=0), q_s)
+                U_output = self.ctr_net(U_v, U_sj_list[i].repeat_interleave(100*U_n, dim=0), U_s)
+                q_output = self.ctr_net(q_v, U_sj_list[i].repeat_interleave(100*q_n, dim=0), q_s)
                 loss_ctr_U += self.loss_fn(U_output, U_a) * len(U_v) * 0.1
                 loss_ctr_q += self.loss_fn(q_output, q_a) * len(q_v) * 0.1
 
