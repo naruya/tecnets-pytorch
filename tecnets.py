@@ -18,13 +18,13 @@ class TecNets(MetaLearner):
         self.num_iter_tr = [0,]
         self.num_iter_val = [0,]
 
-    def make_emb_dict(self, batch_vision, batch_jdx, normalize):
+    def make_emb_dict(self, visions, jdxs, normalize):
         device = self.device
         s_dict = {}
 
-        for vision, jdx in zip(batch_vision, batch_jdx):         # k,100,3,125,125
-            inps = torch.cat([vision[:,0], vision[:,-1]], dim=1) # k,6,125,125
-            sj = self.emb_net(inps.to(device))
+        for vision, jdx in zip(visions, jdxs):                   # k,100,3,125,125
+            inp = torch.cat([vision[:,0], vision[:,-1]], dim=1) # k,6,125,125
+            sj = self.emb_net(inp.to(device))
 
             if normalize:
                 sj = sj.mean(0)
@@ -47,17 +47,17 @@ class TecNets(MetaLearner):
         loss_emb_list, loss_ctr_U_list, loss_ctr_q_list, loss_list = [], [], [], []
 
         for batch_task in tqdm(task_loader):
-            U_vision = batch_task["train-vision"].to(device) # B,U_n,100,3,125,125
-            U_state = batch_task["train-state"].to(device)   # B,U_n,100,20
-            U_action = batch_task["train-action"].to(device) # B,U_n,100,7
-            q_vision = batch_task["test-vision"].to(device)  # B,q_n,100,3,125,125
-            q_state = batch_task["test-state"].to(device)    # B,q_n,100,20
-            q_action = batch_task["test-action"].to(device)  # B,q_n,100,7
-            batch_jdx = batch_task["idx"].to(device)         # B
+            U_visions = batch_task["train-vision"] # B,U_n,100,3,125,125
+            U_states = batch_task["train-state"]   # B,U_n,100,20
+            U_actions = batch_task["train-action"] # B,U_n,100,7
+            q_visions = batch_task["test-vision"]  # B,q_n,100,3,125,125
+            q_states = batch_task["test-state"]    # B,q_n,100,20
+            q_actions = batch_task["test-action"]  # B,q_n,100,7
+            jdxs = batch_task["idx"]               # B
 
             # with torch.no_grad(): # ? # TODO
-            U_s, U_n = self.make_emb_dict(U_vision, batch_jdx, True)
-            q_s, q_n = self.make_emb_dict(q_vision, batch_jdx, False)
+            U_s, U_n = self.make_emb_dict(U_visions, jdxs, True)
+            q_s, q_n = self.make_emb_dict(q_visions, jdxs, False)
             assert U_s.keys() == q_s.keys(), ""
 
             loss_emb, loss_ctr_U, loss_ctr_q = 0, 0, 0
@@ -76,17 +76,19 @@ class TecNets(MetaLearner):
             # ---- calc loss_ctr ----
 
             for i in range(len(batch_task)):
-                U_v = U_vision[i].view(U_n*100,3,125,125)
-                U_s = U_state[i].view(U_n*100,20)
-                U_a = U_action[i].view(U_n*100,7)
-                q_v = q_vision[i].view(q_n*100,3,125,125)
-                q_s = q_state[i].view(q_n*100,20)
-                q_a = q_action[i].view(q_n*100,7)
+                U_vision = U_visions[i].view(U_n*100,3,125,125).to(device)
+                U_state = U_states[i].view(U_n*100,20).to(device)
+                U_action = U_actions[i].view(U_n*100,7).to(device)
+                q_vision = q_visions[i].view(q_n*100,3,125,125).to(device)
+                q_state = q_states[i].view(q_n*100,20).to(device)
+                q_action = q_actions[i].view(q_n*100,7).to(device)
+                U_sj_U_inp = U_sj_list[i].repeat_interleave(100*U_n, dim=0)
+                U_sj_q_inp = U_sj_list[i].repeat_interleave(100*q_n, dim=0)
 
-                U_output = self.ctr_net(U_v, U_sj_list[i].repeat_interleave(100*U_n, dim=0), U_s)
-                q_output = self.ctr_net(q_v, U_sj_list[i].repeat_interleave(100*q_n, dim=0), q_s)
-                loss_ctr_U += self.loss_fn(U_output, U_a) * len(U_v) * 0.1
-                loss_ctr_q += self.loss_fn(q_output, q_a) * len(q_v) * 0.1
+                U_out = self.ctr_net(U_vision, U_sj_U_inp, U_state)
+                q_out = self.ctr_net(q_vision, U_sj_q_inp, q_state)
+                loss_ctr_U += self.loss_fn(U_out, U_action) * len(U_v) * 0.1
+                loss_ctr_q += self.loss_fn(q_out, q_action) * len(q_v) * 0.1
 
             loss = loss_emb + loss_ctr_U + loss_ctr_q
 
