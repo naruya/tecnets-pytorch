@@ -34,7 +34,7 @@ class TecNets(MetaLearner):
 
             s_dict[jdx.item()] = sj
 
-        return s_dict, len(inps)
+        return s_dict, len(inp)
 
     def cos_hinge_loss(self, q_sj, U_sj, U_si):
         real = torch.dot(q_sj, U_sj)
