@@ -47,6 +47,9 @@ class TecNets(MetaLearner):
         loss_emb_list, loss_ctr_U_list, loss_ctr_q_list, loss_list = [], [], [], []
 
         for batch_task in tqdm(task_loader):
+            if train:
+                self.opt.zero_grad()
+
             U_visions = batch_task["train-vision"] # B,U_n,100,3,125,125
             U_states = batch_task["train-state"]   # B,U_n,100,20
             U_actions = batch_task["train-action"] # B,U_n,100,7
@@ -73,28 +76,38 @@ class TecNets(MetaLearner):
 
                 U_sj_list.append(U_sj) # prepare for ctr_net forwarding
 
+            if train:
+                loss_emb.backward(retain_graph=True) # memory saving
+
             # ---- calc loss_ctr ----
 
             for i in range(len(batch_task)):
-                U_vision = U_visions[i].view(U_n*100,3,125,125).to(device)
-                U_state = U_states[i].view(U_n*100,20).to(device)
-                U_action = U_actions[i].view(U_n*100,7).to(device)
-                q_vision = q_visions[i].view(q_n*100,3,125,125).to(device)
-                q_state = q_states[i].view(q_n*100,20).to(device)
-                q_action = q_actions[i].view(q_n*100,7).to(device)
+                U_vision = U_visions[i].view(U_n*100,3,125,125)
+                U_state = U_states[i].view(U_n*100,20)
+                U_action = U_actions[i].view(U_n*100,7)
+                q_vision = q_visions[i].view(q_n*100,3,125,125)
+                q_state = q_states[i].view(q_n*100,20)
+                q_action = q_actions[i].view(q_n*100,7)
                 U_sj_U_inp = U_sj_list[i].repeat_interleave(100*U_n, dim=0)
                 U_sj_q_inp = U_sj_list[i].repeat_interleave(100*q_n, dim=0)
 
-                U_out = self.ctr_net(U_vision, U_sj_U_inp, U_state)
-                q_out = self.ctr_net(q_vision, U_sj_q_inp, q_state)
-                loss_ctr_U += self.loss_fn(U_out, U_action) * len(U_vision) * 0.1
-                loss_ctr_q += self.loss_fn(q_out, q_action) * len(q_vision) * 0.1
+                U_out = self.ctr_net(U_vision.to(device), U_sj_U_inp, U_state.to(device))
+                loss_ctr_U += self.loss_fn(U_out, U_action.to(device)) * len(U_vision) * 0.1
+
+                if train:
+                    loss_ctr_U.backward(retain_graph=True) # memory saving
+
+                q_out = self.ctr_net(q_vision.to(device), U_sj_q_inp, q_state.to(device))
+                loss_ctr_q += self.loss_fn(q_out, q_action.to(device)) * len(q_vision) * 0.1
+
+                if train:
+                    loss_ctr_q.backward()
 
             loss = loss_emb + loss_ctr_U + loss_ctr_q
 
             if train:
-                self.opt.zero_grad()
-                loss.backward()
+                # self.opt.zero_grad()
+                # loss.backward()
                 self.opt.step()
 
             loss_emb_list.append(loss_emb.item())
