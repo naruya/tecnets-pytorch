@@ -60,9 +60,10 @@ class TecNets(MetaLearner):
             q_s, q_n = self.make_emb_dict(q_vision, batch_jdx, False)
             assert U_s.keys() == q_s.keys(), ""
 
+            loss_emb, loss_ctr_U, loss_ctr_q = 0, 0, 0
+
             # ---- calc loss_emb ----
 
-            loss_emb = 0
             U_sj_list = [] # ctr_net input sentences
 
             for (jdx, q_sj), (_, U_sj) in zip(q_s.items(), U_s.items()):
@@ -70,11 +71,9 @@ class TecNets(MetaLearner):
                     if jdx == idx: continue
                     loss_emb += self.cos_hinge_loss(q_sj, U_sj, U_si) * 1.0
 
-                U_sj_list.append(U_sj)
+                U_sj_list.append(U_sj) # prepare for ctr_net forwarding
 
             # ---- calc loss_ctr ----
-
-            loss_ctr_U, loss_ctr_q = 0, 0
 
             for i in range(len(batch_task)):
                 U_v = U_vision[i].view(U_n*100,3,125,125)

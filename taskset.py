@@ -50,8 +50,9 @@ class MILTaskset(Taskset):
         if self.valid:
             idx += self.n_train
 
-        train_indices = np.random.choice(range(0,6), size=self.train_n_shot, replace=False)
-        test_indices = np.random.choice(range(18,24), size=self.test_n_shot, replace=False)
+        train_indices = np.random.choice(range(0,12), size=self.train_n_shot, replace=False)
+        test_indices = np.random.choice(list(set(range(0,12))-set(train_indices)),
+                                        size=self.test_n_shot, replace=False)
 
         train_demos = [torch.load(os.path.join(self.demo_dir, "cache", "task"+str(idx), "demo"+str(j)+".pt"))
                        for j in train_indices] # n,100,125,125,3
