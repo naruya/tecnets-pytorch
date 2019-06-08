@@ -14,7 +14,7 @@ class TecNets(MetaLearner):
     def __init__(self, device, log_dir):
         super(TecNets, self).__init__(device, log_dir)
 
-        # for summury writer, for passing by reference
+        # for summury writer, passing by reference
         self.num_iter_tr = [0,]
         self.num_iter_val = [0,]
 
@@ -22,7 +22,7 @@ class TecNets(MetaLearner):
         device = self.device
         s_dict = {}
 
-        for vision, jdx in zip(batch_vision, batch_jdx): # k,100,3,125,125
+        for vision, jdx in zip(batch_vision, batch_jdx):         # k,100,3,125,125
             inps = torch.cat([vision[:,0], vision[:,-1]], dim=1) # k,6,125,125
             sj = self.emb_net(inps.to(device))
 
@@ -30,7 +30,7 @@ class TecNets(MetaLearner):
                 sj = sj.mean(0)
                 sj = sj / torch.norm(sj)
             else:
-                sj = sj[0]
+                sj = sj[0] # for the moment
 
             s_dict[jdx.item()] = sj
 
@@ -46,10 +46,7 @@ class TecNets(MetaLearner):
         device = self.device
         loss_emb_list, loss_ctr_U_list, loss_ctr_q_list, loss_list = [], [], [], []
 
-        start = time.time() # timer1
-
         for batch_task in tqdm(task_loader):
-
             U_vision = batch_task["train-vision"].to(device) # B,U_n,100,3,125,125
             U_state = batch_task["train-state"].to(device)   # B,U_n,100,20
             U_action = batch_task["train-action"].to(device) # B,U_n,100,7
@@ -58,9 +55,7 @@ class TecNets(MetaLearner):
             q_action = batch_task["test-action"].to(device)  # B,q_n,100,7
             batch_jdx = batch_task["idx"].to(device)         # B
 
-            elapsed_time = time.time() - start
-            print ("timer1. elapsed_time:{0}".format(elapsed_time) + "[sec]") # 2.5s
-
+            # with torch.no_grad(): # ? # TODO
             U_s, U_n = self.make_emb_dict(U_vision, batch_jdx, True)
             q_s, q_n = self.make_emb_dict(q_vision, batch_jdx, False)
             assert U_s.keys() == q_s.keys(), ""
@@ -70,8 +65,6 @@ class TecNets(MetaLearner):
             loss_emb = 0
             U_sj_list = [] # ctr_net input sentences
 
-            start = time.time() # timer2
-
             for (jdx, q_sj), (_, U_sj) in zip(q_s.items(), U_s.items()):
                 for (idx, U_si) in U_s.items():
                     if jdx == idx: continue
@@ -79,19 +72,7 @@ class TecNets(MetaLearner):
 
                 U_sj_list.append(U_sj)
 
-            elapsed_time = time.time() - start
-            print ("timer2. elapsed_time:{0}".format(elapsed_time) + "[sec]") # 0.3s
-
             # ---- calc loss_ctr ----
-
-            start = time.time() # timer3
-
-#             U_sj = torch.stack(U_sj_list) # U_n, 20
-
-            elapsed_time = time.time() - start
-            print ("timer3. elapsed_time:{0}".format(elapsed_time) + "[sec]") # 2.1s
-
-            start = time.time() # timer4
 
             loss_ctr_U, loss_ctr_q = 0, 0
 
@@ -110,25 +91,15 @@ class TecNets(MetaLearner):
 
             loss = loss_emb + loss_ctr_U + loss_ctr_q
 
-            elapsed_time = time.time() - start
-            print ("timer4. elapsed_time:{0}".format(elapsed_time) + "[sec]") # 0.4s
-
-            start = time.time() # timer5
-
             if train:
                 self.opt.zero_grad()
                 loss.backward()
                 self.opt.step()
 
-            elapsed_time = time.time() - start
-            print ("timer5. elapsed_time:{0}".format(elapsed_time) + "[sec]") # 0.7s
-
             loss_emb_list.append(loss_emb.item())
             loss_ctr_U_list.append(loss_ctr_U.item())
             loss_ctr_q_list.append(loss_ctr_q.item())
             loss_list.append(loss.item())
-
-            start = time.time() # 1
 
         # -- end batch tasks
 
