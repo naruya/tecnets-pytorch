@@ -78,6 +78,7 @@ class TecNets(MetaLearner):
 
             if train:
                 loss_emb.backward(retain_graph=True) # memory saving
+            loss_emb = loss_emb.item()
 
             # ---- calc loss_ctr ----
 
@@ -92,16 +93,16 @@ class TecNets(MetaLearner):
                 U_sj_q_inp = U_sj_list[i].repeat_interleave(100*q_n, dim=0)
 
                 U_out = self.ctr_net(U_vision.to(device), U_sj_U_inp, U_state.to(device))
-                loss_ctr_U += self.loss_fn(U_out, U_action.to(device)) * len(U_vision) * 0.1
-
+                _loss_ctr_U = self.loss_fn(U_out, U_action.to(device)) * len(U_vision) * 0.1
                 if train:
-                    loss_ctr_U.backward(retain_graph=True) # memory saving
+                    _loss_ctr_U.backward(retain_graph=True) # memory saving
+                loss_ctr_U += _loss_ctr_U.item()
 
                 q_out = self.ctr_net(q_vision.to(device), U_sj_q_inp, q_state.to(device))
-                loss_ctr_q += self.loss_fn(q_out, q_action.to(device)) * len(q_vision) * 0.1
-
+                _loss_ctr_q = self.loss_fn(q_out, q_action.to(device)) * len(q_vision) * 0.1
                 if train:
-                    loss_ctr_q.backward()
+                    _loss_ctr_q.backward()
+                loss_ctr_q += _loss_ctr_q.item()
 
             loss = loss_emb + loss_ctr_U + loss_ctr_q
 
@@ -110,10 +111,10 @@ class TecNets(MetaLearner):
                 # loss.backward()
                 self.opt.step()
 
-            loss_emb_list.append(loss_emb.item())
-            loss_ctr_U_list.append(loss_ctr_U.item())
-            loss_ctr_q_list.append(loss_ctr_q.item())
-            loss_list.append(loss.item())
+            loss_emb_list.append(loss_emb)
+            loss_ctr_U_list.append(loss_ctr_U)
+            loss_ctr_q_list.append(loss_ctr_q)
+            loss_list.append(loss)
 
         # -- end batch tasks
 
