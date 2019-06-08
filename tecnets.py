@@ -87,8 +87,8 @@ class TecNets(MetaLearner):
 
                 U_out = self.ctr_net(U_vision, U_sj_U_inp, U_state)
                 q_out = self.ctr_net(q_vision, U_sj_q_inp, q_state)
-                loss_ctr_U += self.loss_fn(U_out, U_action) * len(U_v) * 0.1
-                loss_ctr_q += self.loss_fn(q_out, q_action) * len(q_v) * 0.1
+                loss_ctr_U += self.loss_fn(U_out, U_action) * len(U_vision) * 0.1
+                loss_ctr_q += self.loss_fn(q_out, q_action) * len(q_vision) * 0.1
 
             loss = loss_emb + loss_ctr_U + loss_ctr_q
 
