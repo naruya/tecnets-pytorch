@@ -18,7 +18,7 @@ from utils import load_scale_and_bias
 import cv2
 
 class MetaLearner(object):
-    def __init__(self, device, log_dir):
+    def __init__(self, device, log_dir=None):
         
         self.device = device
         self.log_dir = log_dir

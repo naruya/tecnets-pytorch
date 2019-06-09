@@ -11,7 +11,7 @@ from utils import vread
 import time
 
 class TecNets(MetaLearner):
-    def __init__(self, device, log_dir):
+    def __init__(self, device, log_dir=None):
         super(TecNets, self).__init__(device, log_dir)
 
         # for summury writer, passing by reference
