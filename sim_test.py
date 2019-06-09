@@ -74,7 +74,7 @@ if __name__ == '__main__':
     gif_dir = args.log_dir + '/evaluated_gifs/'
     agent = TecNets(device=device)
     agent.sim_mode(args.emb_model_path, args.ctr_model_path, state_path=args.state_path)
-1
+
     def rollout(input_tuple):
         ind, task_id = input_tuple
         demo_ind = 1  # for consistency of comparison
