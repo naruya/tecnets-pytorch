@@ -35,22 +35,21 @@ if __name__ == '__main__':
 
     meta_learner = TecNets(device=device, log_dir=log_dir)
 
+    # for memory saving, for convenience, task_batch_size=1 (See tecnets*.py meta_train)
     train_task_loader = TaskLoader(MILTaskset(
         demo_dir=args.demo_dir, state_path=args.state_path,
         train_n_shot=args.train_n_shot, test_n_shot=1, val_size=0.1),
-                                   batch_size=args.num_batch_tasks, shuffle=True,
-                                   num_workers=4
-                                  )
+                                   batch_size=1, shuffle=True,
+                                   num_workers=4)
     valid_task_loader = TaskLoader(MILTaskset(
         demo_dir=args.demo_dir, state_path=args.state_path,
         train_n_shot=args.train_n_shot, test_n_shot=1, valid=True, val_size=0.1),
-                                   batch_size=args.num_batch_tasks, shuffle=True,
-                                   num_workers=4
-                                  )
+                                   batch_size=1, shuffle=True,
+                                   num_workers=4)
 
     meta_epochs = 5850
 
     for epoch in range(meta_epochs):
         print("# {}".format(epoch+1))
-        meta_learner.meta_train(train_task_loader, epoch, writer=train_writer)
-        meta_learner.meta_test(valid_task_loader, writer=valid_writer)
+        meta_learner.meta_train(train_task_loader, args.num_batch_tasks, epoch, writer=train_writer)
+        meta_learner.meta_test(valid_task_loader, args.num_batch_tasks, epoch, writer=valid_writer)
