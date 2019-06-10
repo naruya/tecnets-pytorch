@@ -10,7 +10,7 @@ from utils import load_scale_and_bias
 
 class MILTaskset(Taskset):
     def __init__(self,
-                 demo_dir="../mil/data/sim_push/", state_path=None,
+                 demo_dir="../mil/data/sim_push/", state_path=None, num_batch_tasks=1,
                  train_n_shot=1, test_n_shot=1, valid=False, val_size=None):
 
         self.demo_dir = demo_dir
@@ -27,11 +27,14 @@ class MILTaskset(Taskset):
         # gif & pkl for all tasks
         gif_dirs = natsorted(glob.glob(os.path.join(demo_dir, "object_*")))
         pkl_files = natsorted(glob.glob(os.path.join(demo_dir, "*.pkl")))
-        assert len(gif_dirs) == len(pkl_files), ""
-        self.n_tasks = len(gif_dirs)
+        self.n_tasks = len(gif_dirs) - len(gif_dirs)%num_batch_tasks
+        print("n_tasks:", self.n_tasks)
+
+        gif_dirs = gif_dirs[:self.n_tasks]
+        pkl_files = pkl_files[:self.n_tasks]
 
         if val_size:
-            self.n_valid = int(self.n_tasks*val_size)
+            self.n_valid = num_batch_tasks # int(self.n_tasks*val_size)
             self.n_train = self.n_tasks - self.n_valid
             if not valid:
                 self.n_tasks = self.n_train

@@ -37,15 +37,15 @@ if __name__ == '__main__':
 
     # for memory saving, for convenience, task_batch_size=1 (See tecnets*.py meta_train)
     train_task_loader = TaskLoader(MILTaskset(
-        demo_dir=args.demo_dir, state_path=args.state_path,
+        demo_dir=args.demo_dir, state_path=args.state_path, num_batch_tasks=args.num_batch_tasks,
         train_n_shot=args.train_n_shot, test_n_shot=1, val_size=0.1),
                                    batch_size=1, shuffle=True,
-                                   num_workers=4)
+                                   num_workers=4, pin_memory=True)
     valid_task_loader = TaskLoader(MILTaskset(
-        demo_dir=args.demo_dir, state_path=args.state_path,
+        demo_dir=args.demo_dir, state_path=args.state_path, num_batch_tasks=args.num_batch_tasks,
         train_n_shot=args.train_n_shot, test_n_shot=1, valid=True, val_size=0.1),
                                    batch_size=1, shuffle=True,
-                                   num_workers=4)
+                                   num_workers=4, pin_memory=True)
 
     meta_epochs = 5850
 
