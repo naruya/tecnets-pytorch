@@ -82,7 +82,7 @@ class TecNets(MetaLearner):
 
             # ---- calc loss_ctr ----
 
-            for i in range(len(batch_task)):
+            for i in range(len(U_visions)):
                 U_vision = U_visions[i].view(U_n*100,3,125,125)
                 U_state = U_states[i].view(U_n*100,20)
                 U_action = U_actions[i].view(U_n*100,7)
