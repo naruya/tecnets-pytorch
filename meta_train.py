@@ -1,11 +1,13 @@
 # export CUDA_VISIBLE_DEVICES="2, 3"
 
 import argparse
-from datetime import datetime
 import os
 import random
-from tensorboardX import SummaryWriter
+import subprocess
+from datetime import datetime
+
 import torch
+from tensorboardX import SummaryWriter
 
 from taskset import MILTaskset
 from torch.utils.data import DataLoader as TaskLoader
@@ -15,18 +17,28 @@ from tecnets import TecNets
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Task-Embedded Control Networks Implementation')
     parser.add_argument('--device_ids', type=int, nargs='+', help='list of CUDA devices (default: [0])', default=[0])
-    parser.add_argument('--demo_dir', type=str, default='../mil/data/sim_push/')
+    parser.add_argument('--demo_dir', type=str, default='sim_push/')
+    parser.add_argument('--state_path', type=str, default="scale_and_bias_sim_push.pkl")
     parser.add_argument('--num_batch_tasks', type=int, default=64)
-    parser.add_argument('--state_path', type=str, default="../mil/data/sim_push_common/scale_and_bias_sim_push.pkl")
     parser.add_argument('--train_n_shot', type=int, default=1)
+    parser.add_argument('--test_n_shot', type=int, default=1)
+    parser.add_argument('--lr', type=float, default=0.0005)
     parser.add_argument('--seed', type=int, default=123)
     args = parser.parse_args()
 
     torch.manual_seed(args.seed)
     random.seed(args.seed)
     device = "cuda"
-    log_dir = "./logs/" + datetime.now().strftime('%m%d_%H%M%S')+"_B"+str(args.num_batch_tasks)\
-                          +"_shot"+str(args.train_n_shot)
+
+    _cmd = "git rev-parse --short HEAD"
+    commit = subprocess.check_output(_cmd.split()).strip().decode('utf-8')
+
+    log_dir = "./logs/" + datetime.now().strftime('%m%d-%H%M%S') \
+                        + "_" + commit \
+                        + "_B"+str(args.num_batch_tasks) \
+                        + "_size125" \
+                        + "_shot" + str(args.train_n_shot) + "-" + str(args.test_n_shot) \
+                        + "_lr" + str(args.lr)
     print(log_dir)
     os.mkdir(log_dir)
 
