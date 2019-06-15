@@ -17,7 +17,7 @@ def vread(path, T=100):
 def resize(path_from, path_to):
     os.mkdir(path_to)
 
-    D0 = natsorted(glob.glob(os.path.join(path_from, "object_*"))) # 0~769
+    D0 = natsorted(glob.glob(os.path.join(path_from, "object_*")))
 
     for d0 in tqdm(D0): # 0~769
         D1 = natsorted(glob.glob(d0+"/*"))
@@ -26,7 +26,7 @@ def resize(path_from, path_to):
 
         for d1 in D1: # 0~24
             gif = vread(d1)
-            gif = [cv2.resize(frame, (32,32)) for frame in gif]
+            gif = [cv2.resize(frame, (64,64)) for frame in gif]
             clip = mpy.ImageSequenceClip(gif, fps=20)
             d1 = d1.split("/")[-1]
             clip.write_gif(os.path.join(path_to, d0, d1), fps=20)
