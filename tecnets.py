@@ -11,8 +11,8 @@ from utils import vread
 import time
 
 class TecNets(MetaLearner):
-    def __init__(self, device, log_dir=None):
-        super(TecNets, self).__init__(device, log_dir)
+    def __init__(self, device, log_dir, lr):
+        super(TecNets, self).__init__(device, log_dir, lr)
 
     def make_sentence(self, vision, normalize):             # k,100,3,125,125
         inp = torch.cat([vision[:,0], vision[:,-1]], dim=1) # k,6,125,125
