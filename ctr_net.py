@@ -57,6 +57,6 @@ class ControlNet(nn.Module):
                 init.normal_(m.weight, 0, 0.01)
                 init.constant_(m.bias, 0)
             elif isinstance(m, nn.LayerNorm):
-                # init.constant_(m.weight, 1)
-                m.register_parameter('weight', None)
+                init.constant_(m.weight, 1)
+                # m.register_parameter('weight', None)
                 init.constant_(m.bias, 0)
