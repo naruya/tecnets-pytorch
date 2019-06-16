@@ -39,6 +39,7 @@ class MILTaskset(Taskset):
         
         tasks = []
 
+        all_states = []
         for idx in tqdm(range(self.n_tasks)):
             demos = []
             for j in range(6,18):
@@ -47,8 +48,10 @@ class MILTaskset(Taskset):
             visions, states, actions = [], [], []
             for demo in demos:
                 visions.append(demo['vision'].to('cuda'))
-                states.append(demo['state'].to('cuda'))
+                state = torch.matmul(demo['state'], self.scale) + self.bias
+                states.append(state.to('cuda'))
                 actions.append(demo['action'].to('cuda'))
+                all_states.append(state)
             visions = torch.stack(visions)
             states = torch.stack(states)
             actions = torch.stack(actions)
@@ -56,6 +59,11 @@ class MILTaskset(Taskset):
 
         _cmd = "nvidia-smi"
         subprocess.call(_cmd.split())
+
+        all_states = torch.stack(all_states)
+        print(visions.shape, states.shape, actions.shape)
+        print(torch.mean(all_states, [0,1]))
+        print(torch.std(all_states, [0,1]))
 
     def __len__(self):
         return self.n_tasks
