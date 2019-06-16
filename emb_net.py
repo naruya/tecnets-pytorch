@@ -8,10 +8,10 @@ class EmbeddingNet(nn.Module):
         
         self.h = h = 16
         
-        self.conv1 = nn.Conv2d(3*2, h, kernel_size=3, stride=1)
-        self.conv2 = nn.Conv2d(h, h, kernel_size=3, stride=1)
-        self.conv3 = nn.Conv2d(h, h, kernel_size=3, stride=1)
-        self.conv4 = nn.Conv2d(h, h, kernel_size=3, stride=1)
+        self.conv1 = nn.Conv2d(3*2, h, kernel_size=3, stride=2)
+        self.conv2 = nn.Conv2d(h, h, kernel_size=3, stride=2)
+        self.conv3 = nn.Conv2d(h, h, kernel_size=3, stride=2)
+        self.conv4 = nn.Conv2d(h, h, kernel_size=3, stride=2)
         
         self.ln1 = nn.LayerNorm([h, 32, 32])
         self.ln2 = nn.LayerNorm([h, 16, 16])
