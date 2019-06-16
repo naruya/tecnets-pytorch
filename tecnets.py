@@ -50,6 +50,7 @@ class TecNets(MetaLearner):
             q_action = task["test-action"][0]  # q_n,100,7
             jdx = task["idx"].item()           # 1
             U_n, q_n = len(U_vision), len(q_vision)
+            size = U_vision.shape[-1] # 125 or 64
 
             U_sj = self.make_sentence(U_vision, True)
             q_sj = self.make_sentence(q_vision, False)
@@ -57,10 +58,10 @@ class TecNets(MetaLearner):
             q_s_dict[jdx] = q_sj
 
             # ---- calc loss_ctr ----
-            U_vision = U_vision.view(U_n*100,3,125,125).to(device)
+            U_vision = U_vision.view(U_n*100,3,size,size).to(device)
             U_state = U_state.view(U_n*100,20).to(device)
             U_action = U_action.view(U_n*100,7).to(device)
-            q_vision = q_vision.view(q_n*100,3,125,125).to(device)
+            q_vision = q_vision.view(q_n*100,3,size,size).to(device)
             q_state = q_state.view(q_n*100,20).to(device)
             q_action = q_action.view(q_n*100,7).to(device)
             U_sj_U_inp = U_sj.repeat_interleave(100*U_n, dim=0)
