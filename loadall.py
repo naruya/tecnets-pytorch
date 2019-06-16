@@ -2,6 +2,7 @@ import os
 import glob
 import torch
 import numpy as np
+import subprocess
 from natsort import natsorted
 from torch.utils.data import Dataset as Taskset
 from utils import make_cache
@@ -52,8 +53,10 @@ class MILTaskset(Taskset):
             states = torch.stack(states)
             actions = torch.stack(actions)
             tasks.append({'vision':visions, 'state':states, 'action':actions})
-            print(visions.shape)
-            
+
+        _cmd = "nvidia-smi"
+        subprocess.call(_cmd.split())
+
     def __len__(self):
         return self.n_tasks
 
