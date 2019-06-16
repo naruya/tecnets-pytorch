@@ -85,7 +85,6 @@ class TecNets(MetaLearner):
             # ----
 
             if ((i+1)*B) % num_batch_tasks == 0:
-                start = time.time() # timer0
 
                 U_s_list = torch.cat(U_s_list, 0)
                 q_s_list = torch.cat(q_s_list, 0)
@@ -101,11 +100,6 @@ class TecNets(MetaLearner):
                         U_si_list.append(U_si)
                 loss_emb = torch.sum(self.cos_hinge_loss(q_sj_list, U_sj_list, U_si_list)) * 1.0
 
-                elapsed_time = time.time() - start
-                print ("timer0. elapsed_time:{0}".format(elapsed_time) + "[sec]") # 0.4s/epoch
-
-                start = time.time() # timer1
-
                 loss = loss_emb + loss_ctr_U + loss_ctr_q
                 if train:
                     loss.backward()
@@ -116,16 +110,8 @@ class TecNets(MetaLearner):
                 loss_ctr_U = loss_ctr_U.item()
                 # ----
 
-                elapsed_time = time.time() - start
-                print ("timer1. elapsed_time:{0}".format(elapsed_time) + "[sec]") # 7.4s/epoch
-
-                start = time.time() # timer2
-
                 if train:
                     self.opt.step()
-
-                elapsed_time = time.time() - start
-                print ("timer2. elapsed_time:{0}".format(elapsed_time) + "[sec]") # 0.1s/epoch
 
                 # loss = loss_emb + loss_ctr_U + loss_ctr_q
                 loss_emb_list.append(loss_emb)
