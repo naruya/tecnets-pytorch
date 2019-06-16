@@ -45,7 +45,7 @@ if __name__ == '__main__':
     train_writer = SummaryWriter("runs/"+log_dir.split("/")[-1]+"_train")
     valid_writer = SummaryWriter("runs/"+log_dir.split("/")[-1]+"_valid")
 
-    meta_learner = TecNets(device=device, log_dir=log_dir)
+    meta_learner = TecNets(device=device, log_dir=log_dir, lr=args.lr)
 
     # for memory saving, for convenience, task_batch_size=1 (See tecnets*.py meta_train)
     train_task_loader = TaskLoader(MILTaskset(
