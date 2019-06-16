@@ -45,8 +45,8 @@ if __name__ == '__main__':
     print(log_dir)
     os.mkdir(log_dir)
 
-    train_writer = SummaryWriter("runs/"+log_dir.split("/")[-1]+"_train")
-    valid_writer = SummaryWriter("runs/"+log_dir.split("/")[-1]+"_valid")
+    train_writer = SummaryWriter("../../runs/"+log_dir.split("/")[-1]+"_train")
+    valid_writer = SummaryWriter("../../runs/"+log_dir.split("/")[-1]+"_valid")
 
     meta_learner = TecNets(device=device, log_dir=log_dir)
 

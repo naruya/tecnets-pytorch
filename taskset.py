@@ -30,7 +30,6 @@ class MILTaskset(Taskset):
         gif_dirs = natsorted(glob.glob(os.path.join(demo_dir, "object_*")))
         pkl_files = natsorted(glob.glob(os.path.join(demo_dir, "*.pkl")))
         self.n_tasks = len(gif_dirs) - len(gif_dirs)%num_batch_tasks # drop last
-#         self.n_tasks = 128 # len(gif_dirs) - len(gif_dirs)%num_batch_tasks # drop last
 
         if val_size:
             self.n_valid = val_size
@@ -91,12 +90,12 @@ class MILTaskset(Taskset):
         test_vision = (test_vision.permute(0,1,4,2,3).to(torch.float32)-127.5)/127.5
 
         return {
-            "train-vision": torch.unsqueeze(train_vision, 0),
-            "train-state": torch.unsqueeze(train_state, 0),
-            "train-action": torch.unsqueeze(train_action, 0),
-            "test-vision": torch.unsqueeze(test_vision, 0),
-            "test-state": torch.unsqueeze(test_state, 0),
-            "test-action": torch.unsqueeze(test_action, 0),
+            "train-vision": train_vision,
+            "train-state": train_state,
+            "train-action": train_action,
+            "test-vision": test_vision,
+            "test-state": test_state,
+            "test-action": test_action,
         }
 
 """

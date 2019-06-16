@@ -14,15 +14,15 @@ class TecNets(MetaLearner):
     def __init__(self, device, log_dir=None):
         super(TecNets, self).__init__(device, log_dir)
 
-    def make_sentence(self, vision, normalize): # B,k,100,3,125,125
-        B, k, size = vision.shape[0], vision.shape[1], vision.shape[5]
+    def make_sentence(self, vision, normalize):
+        B, k, _F, _C, H, W = vision.shape                       # B,k,100,3,125,125
         inp = torch.cat([vision[:,:,0], vision[:,:,-1]], dim=2) # B,k,6,125,125
-        sj = self.emb_net(inp.view(B*k,6,size,size)).view(B,k,20) # B,k,20
+        sj = self.emb_net(inp.view(B*k,6,H,W)).view(B,k,20)     # B,k,20
         if normalize:
             sj = sj.mean(1) # B,20
             sj = sj / torch.norm(sj, 1)
         else:
-            sj = sj[:,0] # B,20
+            sj = sj[:,0]    # B,20
         return sj
 
     def cos_hinge_loss(self, q_sj_list, U_sj_list, U_si_list):
@@ -57,7 +57,7 @@ class TecNets(MetaLearner):
             q_vision = tasks["test-vision"]  # B,q_n,100,C,H,W
             q_state = tasks["test-state"]    # B,q_n,100,20
             q_action = tasks["test-action"]  # B,q_n,100,7
-            B, U_n, q_n = U_vision.shape[0], U_vision.shape[1], q_vision.shape[1]
+            U_n, q_n = U_vision.shape[1], q_vision.shape[1]
             size = U_vision.shape[5] # 125 or 64
 
             U_sj = self.make_sentence(U_vision, normalize=True)  # B,20
