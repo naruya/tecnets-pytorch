@@ -15,14 +15,14 @@ class TecNets(MetaLearner):
         super(TecNets, self).__init__(device, log_dir, lr)
 
     def make_sentence(self, vision, normalize):
-        B, k, _F, _C, H, W = vision.shape                       # B,k,100,3,125,125
-        inp = torch.cat([vision[:,:,0], vision[:,:,-1]], dim=2) # B,k,6,125,125
-        sj = self.emb_net(inp.view(B*k,6,H,W)).view(B,k,20)     # B,k,20
+        N, k, _F, _C, H, W = vision.shape                       # N,k,100,3,125,125
+        inp = torch.cat([vision[:,:,0], vision[:,:,-1]], dim=2) # N,k,6,125,125
+        sj = self.emb_net(inp.view(N*k,6,H,W)).view(N,k,20)     # N,k,20
         if normalize:
-            sj = sj.mean(1) # B,20
+            sj = sj.mean(1) # N,20
             sj = sj / torch.norm(sj, 1)
         else:
-            sj = sj[:,0]    # B,20
+            sj = sj[:,0]    # N,20
         return sj
 
     def cos_hinge_loss(self, q_sj_list, U_sj_list, U_si_list):
@@ -34,57 +34,57 @@ class TecNets(MetaLearner):
         fake = (q_sj*U_si).sum(1) # 4032,
         zero = torch.zeros(1).to(self.device) # 1,
 
-        loss = torch.max(0.1 - real + fake, zero)
-        return loss # 4032,
+        loss = torch.max(0.1 - real + fake, zero) # 4032,
+        return loss
 
     def meta_train(self, task_loader, num_batch_tasks, num_load_tasks, epoch, writer=None, train=True):
         device = self.device
 
-        B = num_load_tasks
+        B = num_batch_tasks # 64
+        N = num_load_tasks  # e.g. 16
         loss_emb_list, loss_ctr_U_list, loss_ctr_q_list, loss_list = [], [], [], []
 
-        for i, tasks in enumerate(tqdm(task_loader)): # 32
+        # N tasks * (n_tasks/N)iter # e.g. 16task * 44iter
+        for i, tasks in enumerate(tqdm(task_loader)):
 
-            if (i*B) % num_batch_tasks == 0:
+            if (i*N) % B == 0:
                 if train:
                     self.opt.zero_grad()
                 loss_emb, loss_ctr_U, loss_ctr_q = 0, 0, 0
                 U_s_list, q_s_list = [], []
 
-            U_vision = tasks["train-vision"] # B,U_n,100,C,H,W
-            U_state = tasks["train-state"]   # B,U_n,100,20
-            U_action = tasks["train-action"] # B,U_n,100,7
-            q_vision = tasks["test-vision"]  # B,q_n,100,C,H,W
-            q_state = tasks["test-state"]    # B,q_n,100,20
-            q_action = tasks["test-action"]  # B,q_n,100,7
+            U_vision = tasks["train-vision"] # N,U_n,100,C,H,W
+            U_state = tasks["train-state"]   # N,U_n,100,20
+            U_action = tasks["train-action"] # N,U_n,100,7
+            q_vision = tasks["test-vision"]  # N,q_n,100,C,H,W
+            q_state = tasks["test-state"]    # N,q_n,100,20
+            q_action = tasks["test-action"]  # N,q_n,100,7
             U_n, q_n = U_vision.shape[1], q_vision.shape[1]
             size = U_vision.shape[5] # 125 or 64
 
-            U_sj = self.make_sentence(U_vision, normalize=True)  # B,20
-            q_sj = self.make_sentence(q_vision, normalize=False) # B,20
+            U_sj = self.make_sentence(U_vision, normalize=True)  # N,20
+            q_sj = self.make_sentence(q_vision, normalize=False) # N,20
             U_s_list.append(U_sj)
             q_s_list.append(q_sj)
 
             # ---- calc loss_ctr ----
-            U_vision = U_vision.view(B*U_n*100,3,size,size).to(device) # B*U_n*100,C,H,W
-            U_state = U_state.view(B*U_n*100,20).to(device)            # B*U_n*100,20
-            U_action = U_action.view(B*U_n*100,7).to(device)           # B*U_n*100,7
-            q_vision = q_vision.view(B*q_n*100,3,size,size).to(device) # B*q_n*100,C,H,W
-            q_state = q_state.view(B*q_n*100,20).to(device)            # B*q_n*100,20
-            q_action = q_action.view(B*q_n*100,7).to(device)           # B*q_n*100,7
-            U_sj_U_inp = U_sj.repeat_interleave(U_n*100, dim=0)        # B*U_n*100,20
-            U_sj_q_inp = U_sj.repeat_interleave(q_n*100, dim=0)        # B*q_n*100,20
+            U_vision = U_vision.view(N*U_n*100,3,size,size).to(device) # N*U_n*100,C,H,W
+            U_state = U_state.view(N*U_n*100,20).to(device)            # N*U_n*100,20
+            U_action = U_action.view(N*U_n*100,7).to(device)           # N*U_n*100,7
+            q_vision = q_vision.view(N*q_n*100,3,size,size).to(device) # N*q_n*100,C,H,W
+            q_state = q_state.view(N*q_n*100,20).to(device)            # N*q_n*100,20
+            q_action = q_action.view(N*q_n*100,7).to(device)           # N*q_n*100,7
+            U_sj_U_inp = U_sj.repeat_interleave(U_n*100, dim=0)        # N*U_n*100,20
+            U_sj_q_inp = U_sj.repeat_interleave(q_n*100, dim=0)        # N*q_n*100,20
 
             U_out = self.ctr_net(U_vision, U_sj_U_inp, U_state)
-            _loss_ctr_U = self.loss_fn(U_out, U_action) * len(U_vision) * 0.1
-            loss_ctr_U += _loss_ctr_U
+            loss_ctr_U += self.loss_fn(U_out, U_action) * len(U_vision) * 0.1
 
             q_out = self.ctr_net(q_vision, U_sj_q_inp, q_state)
-            _loss_ctr_q = self.loss_fn(q_out, q_action) * len(q_vision) * 0.1
-            loss_ctr_q += _loss_ctr_q
+            loss_ctr_q += self.loss_fn(q_out, q_action) * len(q_vision) * 0.1
             # ----
 
-            if ((i+1)*B) % num_batch_tasks == 0:
+            if ((i+1)*N) % B == 0:
 
                 U_s_list = torch.cat(U_s_list, 0)
                 q_s_list = torch.cat(q_s_list, 0)
