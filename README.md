@@ -1,5 +1,8 @@
 # !!! UNDER CONSTRUCTION !!!
 
+working on -> https://github.com/naruya/tecnets-pytorch/tree/mini/loadall  
+(↑Fast mode. very powerful GPU is needed.)
+
 # PyTorch Implementation of Task-Embedded Control Networks
 
 Original Paper: Task-Embedded Control Networks for Few-Shot Imitation Learning (Stephen James, Michael Bloesch, Andrew J. Davison)
