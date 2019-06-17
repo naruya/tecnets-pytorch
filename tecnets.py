@@ -107,7 +107,7 @@ class TecNets(MetaLearner):
                     loss.backward()
 
                 loss = loss.item()
-                loss_emb = loss_emb.item()
+                # loss_emb = loss_emb.item()
                 loss_ctr_q = loss_ctr_q.item()
                 loss_ctr_U = loss_ctr_U.item()
                 # ----
