@@ -1,6 +1,6 @@
 # !!! UNDER CONSTRUCTION !!!
 
-working on -> https://github.com/naruya/tecnets-pytorch/tree/mini/loadall
+working on -> https://github.com/naruya/tecnets-pytorch/tree/mini/loadall  
 (↑Fast mode. very powerful GPU is needed.)
 
 # PyTorch Implementation of Task-Embedded Control Networks
