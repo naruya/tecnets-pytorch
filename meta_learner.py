@@ -29,7 +29,9 @@ class MetaLearner(object):
         self.ctr_net = torch.nn.DataParallel(self.ctr_net, device_ids=[0])
 
         params = list(self.emb_net.parameters()) + list(self.ctr_net.parameters())
-        self.opt = Adam(params, lr=lr)
+
+        if lr:
+            self.opt = Adam(params, lr=lr)
 
     def save_emb_net(self, model_path):
         torch.save(self.emb_net.state_dict(), model_path)
@@ -48,6 +50,11 @@ class MetaLearner(object):
 
     def load_opt(self, model_path, device):
         self.opt.load_state_dict(torch.load(model_path, map_location=device))
+
+    def resume(self, emb_path, ctr_path, opt_path, device):
+        self.load_emb_net(emb_path, device)
+        self.load_ctr_net(ctr_path, device)
+        self.load_opt(opt_path, device)
 
     def loss_fn(self, output, action):
         return F.mse_loss(output, action)
@@ -107,6 +114,20 @@ class MetaLearner(object):
         else:
             image_obs, nonimage_obs = env.wrapped_env.wrapped_env.get_current_image_obs()
 
+        import os
+        import sys
+        import moviepy.editor as mpy
+        from utils import vread
+        if os.path.isfile("frame.gif"):
+            os.remove("frame.gif")
+
+        gif64 = [cv2.resize(image_obs, (64,64))]
+        clip = mpy.ImageSequenceClip(gif64, fps=20)
+        sys.stdout = open(os.devnull, 'w')
+        clip.write_gif("frame.gif", fps=20)
+        sys.stdout = sys.__stdout__
+
+        image_obs = vread("frame.gif", 1)[0]
         image_obses.append(image_obs)
         image_obs = (np.array(np.expand_dims(image_obs, 0).transpose(0, 3, 1, 2), np.float32)-127.5)/127.5
         image_obs = torch.from_numpy(image_obs).to(device)
@@ -115,12 +136,21 @@ class MetaLearner(object):
         nonimage_obs = torch.from_numpy(nonimage_obs).to(device)
         nonimage_obs = torch.matmul(nonimage_obs, self.scale) + self.bias
         observations.append(np.squeeze(o))
-
         for _ in range(max_length):
             a = self.ctr_net(image_obs, sentence, nonimage_obs).cpu().data.numpy()
             o, r, done, env_info = env.step(a)
 
             image_obs, nonimage_obs = env.get_current_image_obs()
+
+            if os.path.isfile("frame.gif"):
+                os.remove("frame.gif")
+
+            gif64 = [cv2.resize(image_obs, (64,64))]
+            clip = mpy.ImageSequenceClip(gif64, fps=20)
+            sys.stdout = open(os.devnull, 'w')
+            clip.write_gif("frame.gif", fps=20)
+            sys.stdout = sys.__stdout__
+            image_obs = vread("frame.gif", 1)[0]
 
             if done:
                 break
