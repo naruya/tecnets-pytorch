@@ -141,7 +141,7 @@ class TecNets(MetaLearner):
             self.save_ctr_net(self.log_dir+"/"+path+"_ctr.pt")
             self.save_opt(self.log_dir+"/"+path+"_opt.pt")
 
-    def meta_test(self, task_loader, num_batch_tasks, num_load_tasks, epoch, writer):
+    def meta_valid(self, task_loader, num_batch_tasks, num_load_tasks, epoch, writer):
         with torch.no_grad():
             self.emb_net.eval()
             self.ctr_net.eval()

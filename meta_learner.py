@@ -62,7 +62,7 @@ class MetaLearner(object):
     def meta_train(self, task_loader):
         pass
 
-    def meta_test(self, task_loader):
+    def meta_valid(self, task_loader):
         pass
     
     def make_test_sentence(self, demo_path, emb_net):
