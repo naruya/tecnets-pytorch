@@ -169,7 +169,7 @@ class TecNets(MetaLearner):
         inp = torch.stack([torch.from_numpy(inp).to("cuda")]) # 1,F,H,W,C
         inp = (inp.permute(0,1,4,2,3).to(torch.float32)-127.5)/127.5
         inp = torch.stack([inp]) # 1,1,F,H,W,C
-        inp = self.make_sentence(inp, normalize=False)[0]
+        inp = self.make_sentence(inp, normalize=True)[0]
 
         return  inp
 
