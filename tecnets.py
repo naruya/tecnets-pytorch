@@ -86,6 +86,7 @@ class TecNets(MetaLearner):
 
             if ((i+1)*N) % B == 0:
 
+                # don't convert into list. graph informations will be lost. (and an error will occur)
                 U_s_list = torch.cat(U_s_list, 0) # N*(B/N),20 -> N,20
                 q_s_list = torch.cat(q_s_list, 0) # N*(B/N),20 -> N,20
 
