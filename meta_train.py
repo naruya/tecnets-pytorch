@@ -24,6 +24,10 @@ if __name__ == '__main__':
     parser.add_argument('--train_n_shot', type=int, default=1)
     parser.add_argument('--test_n_shot', type=int, default=1)
     parser.add_argument('--lr', type=float, default=0.0005)
+    parser.add_argument('--resume_epoch', type=int, default=None)
+    parser.add_argument('--emb_path', type=str, default=None)
+    parser.add_argument('--ctr_path', type=str, default=None)
+    parser.add_argument('--opt_path', type=str, default=None)
     parser.add_argument('--seed', type=int, default=123)
     args = parser.parse_args()
 
@@ -49,6 +53,15 @@ if __name__ == '__main__':
     valid_writer = SummaryWriter("../../runs/"+log_dir.split("/")[-1]+"_valid")
 
     meta_learner = TecNets(device=device, log_dir=log_dir, lr=args.lr)
+    if args.resume_epoch:
+        print("resuming...")
+        print(args.emb_path)
+        print(args.ctr_path)
+        print(args.opt_path)
+        meta_learner.resume(args.emb_path, args.ctr_path, args.opt_path, device)
+        resume_epoch = args.resume_epoch
+    else:
+        resume_epoch = 0
 
     # for memory saving, for convenience, task_batch_size=1 (See tecnets*.py meta_train)
     # Don't use `num_workers` or `pin_memory` option.
@@ -61,9 +74,9 @@ if __name__ == '__main__':
         train_n_shot=args.train_n_shot, test_n_shot=1, valid=True, val_size=args.num_batch_tasks),
                                    batch_size=args.num_load_tasks, shuffle=True)
 
-    meta_epochs = 400000
+    meta_epochs = 400000 # 400000/11
 
-    for epoch in range(meta_epochs):
+    for epoch in range(resume_epoch, meta_epochs):
         print("# {}".format(epoch+1))
         meta_learner.meta_train(train_task_loader, args.num_batch_tasks, args.num_load_tasks, epoch, writer=train_writer)
         meta_learner.meta_test(valid_task_loader, args.num_batch_tasks, args.num_load_tasks, epoch, writer=valid_writer)
