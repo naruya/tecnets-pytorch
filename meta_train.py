@@ -40,7 +40,12 @@ if __name__ == '__main__':
     _cmd = "git rev-parse --short HEAD"
     commit = subprocess.check_output(_cmd.split()).strip().decode('utf-8')
 
+    _cmd = "git rev-parse --abbrev-ref HEAD"
+    branch = subprocess.check_output(_cmd.split()).strip().decode('utf-8')
+    branch = "-".join(branch.split("/"))
+
     log_dir = "./logs/" + datetime.now().strftime('%m%d-%H%M%S') \
+                        + "_" + branch \
                         + "_" + commit \
                         + "_B"+str(args.num_batch_tasks) \
                         + "_size125" \
