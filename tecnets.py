@@ -11,12 +11,12 @@ from utils import vread
 import time
 
 class TecNets(MetaLearner):
-    def __init__(self, device, log_dir, lr):
+    def __init__(self, device, log_dir=None, lr=None):
         super(TecNets, self).__init__(device, log_dir, lr)
 
     def make_sentence(self, vision, normalize):
-        N, k, _F, _C, H, W = vision.shape                       # N,k,100,3,125,125
-        inp = torch.cat([vision[:,:,0], vision[:,:,-1]], dim=2) # N,k,6,125,125
+        N, k, _F, _C, H, W = vision.shape                       # N,k,100,3,H,W
+        inp = torch.cat([vision[:,:,0], vision[:,:,-1]], dim=2) # N,k,6,H,W
         sj = self.emb_net(inp.view(N*k,6,H,W)).view(N,k,20)     # N,k,20
         if normalize:
             sj = sj.mean(1) # N,20
@@ -149,12 +149,30 @@ class TecNets(MetaLearner):
             self.meta_train(task_loader, num_batch_tasks, num_load_tasks, epoch, writer, False)
 
     def make_test_sentence(self, demo_path, emb_net):
-        inp = (vread(demo_path).transpose(0,3,1,2)[[0,-1]].reshape(1,6,125,125).astype(np.float32)
-                        -127.5)/127.5  # 1,6,125,125
-        inp = torch.from_numpy(inp).to(self.device)
-        inp = emb_net(inp.to(self.device))[0]
-        return  inp / torch.norm(inp)
-    
+        import os
+        import sys
+        import moviepy.editor as mpy
+
+        if os.path.isfile("resized.gif"):
+            os.remove("resized.gif")
+
+        gif125 = vread(demo_path)
+        gif64 = [cv2.resize(frame, (64,64)) for frame in gif125]
+
+        clip = mpy.ImageSequenceClip(gif64, fps=20)
+        sys.stdout = open(os.devnull, 'w')
+        clip.write_gif("resized.gif", fps=20)
+        sys.stdout = sys.__stdout__
+
+        inp = vread("resized.gif")
+        cv2.imshow("demo", inp[-1][:,:,::-1]); cv2.waitKey(10)
+        inp = torch.stack([torch.from_numpy(inp).to("cuda")]) # 1,F,H,W,C
+        inp = (inp.permute(0,1,4,2,3).to(torch.float32)-127.5)/127.5
+        inp = torch.stack([inp]) # 1,1,F,H,W,C
+        inp = self.make_sentence(inp, normalize=False)[0]
+
+        return  inp
+
     def sim_test(self, env, demo_path):
         with torch.no_grad():
             self.emb_net.eval()
