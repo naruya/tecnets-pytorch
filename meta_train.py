@@ -79,7 +79,6 @@ if __name__ == '__main__':
     meta_epochs = 400000 # 400000/11
 
     for epoch in range(resume_epoch, meta_epochs):
-    parser.add_argument('--num_load_tasks', type=int, default=16)
         print("# {}".format(epoch+1))
         meta_learner.meta_train(train_task_loader, args.num_batch_tasks, args.num_load_tasks, epoch, writer=train_writer)
         meta_learner.meta_valid(valid_task_loader, args.num_batch_tasks, args.num_load_tasks, epoch, writer=valid_writer)
