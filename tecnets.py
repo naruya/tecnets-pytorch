@@ -11,17 +11,17 @@ from utils import vread
 import time
 
 class TecNets(MetaLearner):
-    def __init__(self, device, log_dir, lr):
+    def __init__(self, device, log_dir=None, lr=None):
         super(TecNets, self).__init__(device, log_dir, lr)
 
     def make_sentence(self, vision, normalize):             # k,100,3,125,125
         inp = torch.cat([vision[:,0], vision[:,-1]], dim=1) # k,6,125,125
-        sj = self.emb_net(inp.to(self.device))
+        sj = self.emb_net(inp.to(self.device))              # k,20
         if normalize:
-            sj = sj.mean(0)
+            sj = sj.mean(0) # 20,
             sj = sj / torch.norm(sj)
         else:
-            sj = sj[0]
+            sj = sj[0]      # 20,
         return sj
 
     def cos_hinge_loss(self, q_sj, U_sj, U_si):
@@ -32,11 +32,13 @@ class TecNets(MetaLearner):
 
     def meta_train(self, task_loader, num_batch_tasks, epoch, writer=None, train=True):
         device = self.device
+
+        B = num_batch_tasks
         loss_emb_list, loss_ctr_U_list, loss_ctr_q_list, loss_list = [], [], [], []
 
         for i, task in enumerate(tqdm(task_loader)): # load tasks one by one
 
-            if i % num_batch_tasks == 0:
+            if i % B == 0:
                 if train:
                     self.opt.zero_grad()
                 loss_emb, loss_ctr_U, loss_ctr_q = 0, 0, 0
@@ -80,7 +82,7 @@ class TecNets(MetaLearner):
             loss_ctr_q += _loss_ctr_q.item()
             # ----
 
-            if (i+1) % num_batch_tasks == 0:
+            if (i+1) % B == 0:
 
                 # ---- calc loss_emb ----
                 for (jdx, q_sj), (_, U_sj) in zip(q_s_dict.items(), U_s_dict.items()):
@@ -108,6 +110,8 @@ class TecNets(MetaLearner):
         loss_ctr_q = np.mean(loss_ctr_q_list)
         loss = np.mean(loss_list)
 
+        print("loss:", loss, ", loss_ctr_U:", loss_ctr_U, ", loss_ctr_q:", loss_ctr_q, ", loss_emb:", loss_emb)
+
         if writer:
             writer.add_scalar('loss_emb', loss_emb, epoch)
             writer.add_scalar('loss_ctr_U', loss_ctr_U, epoch)
@@ -120,19 +124,20 @@ class TecNets(MetaLearner):
             self.save_ctr_net(self.log_dir+"/"+path+"_ctr.pt")
             self.save_opt(self.log_dir+"/"+path+"_opt.pt")
 
-    def meta_test(self, task_loader, num_batch_tasks, epoch, writer):
+    def meta_valid(self, task_loader, num_batch_tasks, epoch, writer):
         with torch.no_grad():
             self.emb_net.eval()
             self.ctr_net.eval()
             self.meta_train(task_loader, num_batch_tasks, epoch, writer, False)
 
     def make_test_sentence(self, demo_path, emb_net):
-        inp = (vread(demo_path).transpose(0,3,1,2)[[0,-1]].reshape(1,6,125,125).astype(np.float32)
-                        -127.5)/127.5  # 1,6,125,125
-        inp = torch.from_numpy(inp).to(self.device)
-        inp = emb_net(inp.to(self.device))[0]
-        return  inp / torch.norm(inp)
-    
+        inp = vread(demo_path)
+        cv2.imshow("demo", inp[-1][:,:,::-1]); cv2.waitKey(10)
+        inp = torch.stack([torch.from_numpy(inp).to("cuda")]) # 1,F,H,W,C
+        inp = (inp.permute(0,1,4,2,3).to(torch.float32)-127.5)/127.5 # 1,F,C,H,W
+        inp = self.make_sentence(inp, normalize=True) # 20,
+        return  inp
+
     def sim_test(self, env, demo_path):
         with torch.no_grad():
             self.emb_net.eval()

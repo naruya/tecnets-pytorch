@@ -29,7 +29,9 @@ class MetaLearner(object):
         self.ctr_net = torch.nn.DataParallel(self.ctr_net, device_ids=[0])
 
         params = list(self.emb_net.parameters()) + list(self.ctr_net.parameters())
-        self.opt = Adam(params, lr=lr)
+
+        if lr:
+            self.opt = Adam(params, lr=lr)
 
     def save_emb_net(self, model_path):
         torch.save(self.emb_net.state_dict(), model_path)
@@ -49,13 +51,18 @@ class MetaLearner(object):
     def load_opt(self, model_path, device):
         self.opt.load_state_dict(torch.load(model_path, map_location=device))
 
+    def resume(self, emb_path, ctr_path, opt_path, device):
+        self.load_emb_net(emb_path, device)
+        self.load_ctr_net(ctr_path, device)
+        self.load_opt(opt_path, device)
+
     def loss_fn(self, output, action):
         return F.mse_loss(output, action)
 
     def meta_train(self, task_loader):
         pass
 
-    def meta_test(self, task_loader):
+    def meta_valid(self, task_loader):
         pass
     
     def make_test_sentence(self, demo_path, emb_net):
