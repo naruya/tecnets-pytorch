@@ -109,7 +109,7 @@ class TecNets(MetaLearner):
                         U_si_list.append(U_si)
 
                 # _loss_emb = torch.sum(self.cos_hinge_loss(q_sj_list, U_sj_list, U_si_list)) * 1.0
-                _loss_emb = torch.mean(self.cos_hinge_loss(q_sj_list, U_sj_list, U_si_list)) * 1.0
+                _loss_emb = torch.mean(self.cos_hinge_loss(q_sj_list, U_sj_list, U_si_list)) * 1.0 / (B*100)
 
                 if train:
                     _loss_emb.backward()
