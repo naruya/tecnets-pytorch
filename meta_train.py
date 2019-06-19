@@ -40,7 +40,12 @@ if __name__ == '__main__':
     _cmd = "git rev-parse --short HEAD"
     commit = subprocess.check_output(_cmd.split()).strip().decode('utf-8')
 
+    _cmd = "git rev-parse --abbrev-ref HEAD"
+    branch = subprocess.check_output(_cmd.split()).strip().decode('utf-8')
+    branch = "-".join(branch.split("/"))
+
     log_dir = "./logs/" + datetime.now().strftime('%m%d-%H%M%S') \
+                        + "_" + branch \
                         + "_" + commit \
                         + "_B"+str(args.num_batch_tasks) \
                         + "_size64" \
@@ -53,6 +58,7 @@ if __name__ == '__main__':
     valid_writer = SummaryWriter("../../runs/"+log_dir.split("/")[-1]+"_valid")
 
     meta_learner = TecNets(device=device, log_dir=log_dir, lr=args.lr)
+
     if args.resume_epoch:
         print("resuming...")
         print(args.emb_path)
@@ -64,7 +70,6 @@ if __name__ == '__main__':
         resume_epoch = 0
 
     # for memory saving, for convenience, task_batch_size=1 (See tecnets*.py meta_train)
-    # Don't use `num_workers` or `pin_memory` option.
     train_task_loader = TaskLoader(MILTaskset(
         demo_dir=args.demo_dir, state_path=args.state_path, num_batch_tasks=args.num_batch_tasks,
         train_n_shot=args.train_n_shot, test_n_shot=1, val_size=args.num_batch_tasks),
