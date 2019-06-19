@@ -78,10 +78,12 @@ class TecNets(MetaLearner):
             U_sj_q_inp = U_sj.repeat_interleave(q_n*100, dim=0)        # N*q_n*100,20
 
             U_out = self.ctr_net(U_vision, U_sj_U_inp, U_state)
-            loss_ctr_U += self.loss_fn(U_out, U_action) * len(U_vision) * 0.1
+            # loss_ctr_U += self.loss_fn(U_out, U_action) * len(U_vision) * 0.1
+            loss_ctr_U += self.loss_fn(U_out, U_action) * len(U_vision) * 0.1 / (B*100)
 
             q_out = self.ctr_net(q_vision, U_sj_q_inp, q_state)
-            loss_ctr_q += self.loss_fn(q_out, q_action) * len(q_vision) * 0.1
+            # loss_ctr_q += self.loss_fn(q_out, q_action) * len(q_vision) * 0.1
+            loss_ctr_q += self.loss_fn(q_out, q_action) * len(q_vision) * 0.1 / (B*100)
             # ----
 
             if ((i+1)*N) % B == 0:
