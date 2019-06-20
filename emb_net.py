@@ -56,3 +56,7 @@ class EmbeddingNet(nn.Module):
                 init.constant_(m.weight, 1)
                 # m.register_parameter('weight', None)
                 init.constant_(m.bias, 0)
+            elif isinstance(m, nn.GroupNorm):
+                init.constant_(m.weight, 1)
+                # m.register_parameter('weight', None)
+                init.constant_(m.bias, 0)
