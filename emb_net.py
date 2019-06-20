@@ -16,7 +16,7 @@ class EmbeddingNet(nn.Module):
         self.ln1 = nn.LayerNorm([h, 63, 63])
         self.ln2 = nn.LayerNorm([h, 32, 32])
         self.ln3 = nn.LayerNorm([h, 16, 16])
-        self.ln4 = nn.LayerNorm([h, 8, 5])
+        self.ln4 = nn.LayerNorm([h, 8, 8])
         
         self.fc1 = nn.Linear(h*8*8, 200)
         self.fc2 = nn.Linear(200, 200)
