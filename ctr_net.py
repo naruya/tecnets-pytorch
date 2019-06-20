@@ -14,10 +14,10 @@ class ControlNet(nn.Module):
         self.conv3 = nn.Conv2d(h, h, kernel_size=5, stride=2, padding=2)
         self.conv4 = nn.Conv2d(h, h, kernel_size=5, stride=2, padding=2)
         
-        self.ln1 = nn.LayerNorm([h, 63, 63])
-        self.ln2 = nn.LayerNorm([h, 32, 32])
-        self.ln3 = nn.LayerNorm([h, 16, 16])
-        self.ln4 = nn.LayerNorm([h, 8, 8])
+        self.ln1 = nn.LayerNorm([h])
+        self.ln2 = nn.LayerNorm([h])
+        self.ln3 = nn.LayerNorm([h])
+        self.ln4 = nn.LayerNorm([h])
         
         self.fc1 = nn.Linear(h*8*8+20, 200)
         self.fc2 = nn.Linear(200, 200)
