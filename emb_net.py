@@ -13,10 +13,10 @@ class EmbeddingNet(nn.Module):
         self.conv3 = nn.Conv2d(h, h, kernel_size=5, stride=2, padding=2)
         self.conv4 = nn.Conv2d(h, h, kernel_size=5, stride=2, padding=2)
         
-        self.ln1 = nn.LayerNorm([h])
-        self.ln2 = nn.LayerNorm([h])
-        self.ln3 = nn.LayerNorm([h])
-        self.ln4 = nn.LayerNorm([h])
+        self.ln1 = nn.GroupNorm(1, h)  # LayerNorm (sharing affine transform parameter in channel ver.)
+        self.ln2 = nn.GroupNorm(1, h)
+        self.ln3 = nn.GroupNorm(1, h)
+        self.ln4 = nn.GroupNorm(1, h)
         
         self.fc1 = nn.Linear(h*8*8, 200)
         self.fc2 = nn.Linear(200, 200)
