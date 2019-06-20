@@ -63,7 +63,7 @@ class TecNets(MetaLearner):
             size = U_vision.shape[5] # 125 or 64
 
             U_sj = self.make_sentence(U_vision, normalize=True)  # N,20
-            q_sj = self.make_sentence(q_vision, normalize=False) # N,20
+            q_sj = self.make_sentence(q_vision, normalize=True) # N,20
             U_s_list.append(U_sj)
             q_s_list.append(q_sj)
 
