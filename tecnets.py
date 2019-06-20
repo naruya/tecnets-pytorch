@@ -101,22 +101,18 @@ class TecNets(MetaLearner):
                 q_sj_list, U_sj_list, U_si_list = [], [], []
 
                 # ---- calc loss_emb ----
-                """
                 for jdx, (q_sj, U_sj) in enumerate(zip(q_s_list, U_s_list)):
                     for idx, U_si in enumerate(U_s_list):
                         if jdx == idx: continue
                         q_sj_list.append(q_sj)
                         U_sj_list.append(U_sj)
                         U_si_list.append(U_si)
-                """
-                #_loss_emb = torch.sum(self.cos_hinge_loss(q_sj_list, U_sj_list, U_si_list)) * 1.0
-                loss_emb = 0 # torch.sum(self.cos_hinge_loss(q_sj_list, U_sj_list, U_si_list)) * 1.0
+                # loss_emb = torch.sum(self.cos_hinge_loss(q_sj_list, U_sj_list, U_si_list)) * 1.0
+                loss_emb = torch.mean(self.cos_hinge_loss(q_sj_list, U_sj_list, U_si_list)) * 1.0 / (B*100)
 
-                """
                 if train:
                     _loss_emb.backward()
                 loss_emb = _loss_emb.item()
-                """
                 # ----
 
                 if train:
