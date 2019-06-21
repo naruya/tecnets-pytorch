@@ -115,7 +115,7 @@ class MetaLearner(object):
             image_obs, nonimage_obs = env.wrapped_env.wrapped_env.get_current_image_obs()
 
         image_obses.append(image_obs)
-        image_obs = (np.array(np.expand_dims(image_obs, 0).transpose(0, 3, 1, 2), np.float32)-127.5)/127.5
+        image_obs = np.array(np.expand_dims(image_obs, 0).transpose(0, 3, 1, 2), np.float32) / 255.0
         image_obs = torch.from_numpy(image_obs).to(device)
         nonimage_obses.append(nonimage_obs)
         nonimage_obs = np.array(np.expand_dims(nonimage_obs, 0), np.float32)
@@ -133,7 +133,7 @@ class MetaLearner(object):
                 break
 
             image_obses.append(image_obs)
-            image_obs = (np.array(np.expand_dims(image_obs, 0).transpose(0, 3, 1, 2), np.float32)-127.5)/127.5
+            image_obs = np.array(np.expand_dims(image_obs, 0).transpose(0, 3, 1, 2), np.float32) / 255.0
             image_obs = torch.from_numpy(image_obs).to(device)
 
             observations.append(np.squeeze(o))

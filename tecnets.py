@@ -153,7 +153,7 @@ class TecNets(MetaLearner):
         inp = vread(demo_path)
         cv2.imshow("demo", inp[-1][:,:,::-1]); cv2.waitKey(10)
         inp = torch.stack([torch.from_numpy(inp).to("cuda")]) # 1,F,H,W,C
-        inp = (inp.permute(0,1,4,2,3).to(torch.float32)-127.5)/127.5 # 1,F,C,H,W
+        inp = inp.permute(0,1,4,2,3).to(torch.float32) / 255.0 # 1,F,C,H,W
         inp = self.make_sentence(inp, normalize=True) # 20,
         return  inp
 

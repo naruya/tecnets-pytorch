@@ -44,7 +44,7 @@ class ControlNet(nn.Module):
 
         x = F.elu(self.ln5(self.fc1(x))) # 200
         x = F.elu(self.ln6(self.fc2(x))) # 200
-        x = self.fc3(x)*2 # 7
+        x = self.fc3(x) # 7
 
         return x
     

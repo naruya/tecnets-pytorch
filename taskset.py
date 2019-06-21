@@ -63,10 +63,10 @@ class MILTaskset(Taskset):
                       for j in test_indices] # n,100,125,125,3
 
         return {
-            "train-vision": ((torch.stack([demo['vision'] for demo in train_demos]).permute(0,1,4,2,3).to(torch.float32)-127.5)/127.5),
+            "train-vision": torch.stack([demo['vision'] for demo in train_demos]).permute(0,1,4,2,3).to(torch.float32) / 255.0,
             "train-state": torch.stack([torch.matmul(demo['state'], self.scale) + self.bias for demo in train_demos]),
             "train-action": torch.stack([demo['action'] for demo in train_demos]),
-            "test-vision": ((torch.stack([demo['vision'] for demo in test_demos]).permute(0,1,4,2,3).to(torch.float32)-127.5)/127.5),
+            "test-vision": torch.stack([demo['vision'] for demo in test_demos]).permute(0,1,4,2,3).to(torch.float32) /255.0,
             "test-state": torch.stack([torch.matmul(demo['state'], self.scale) + self.bias for demo in test_demos]),
             "test-action": torch.stack([demo['action'] for demo in test_demos]),
             'idx': idx
