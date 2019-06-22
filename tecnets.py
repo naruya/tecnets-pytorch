@@ -115,6 +115,8 @@ class TecNets(MetaLearner):
                 # ----
 
                 if train:
+                    torch.nn.clip_grad_value_(self.emb_net.parameters(), 10)
+                    torch.nn.clip_grad_value_(self.ctr_net.parameters(), 10)
                     self.opt.step()
 
                 loss = loss_emb + loss_ctr_U + loss_ctr_q
