@@ -30,6 +30,14 @@ class MetaLearner(object):
 
         params = list(self.emb_net.parameters()) + list(self.ctr_net.parameters())
 
+        print("emb_net params")
+        for name, param in self.emb_net.named_parameters():
+            print(name, param.shape)
+
+        print("ctr_net params")
+        for name, param in self.ctr_net.named_parameters():
+            print(name, param.shape)
+
         if lr:
             self.opt = Adam(params, lr=lr)
 
