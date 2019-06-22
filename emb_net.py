@@ -21,10 +21,7 @@ class EmbeddingNet(nn.Module):
         self.fc1 = nn.Linear(h*8*8, 200)
         self.fc2 = nn.Linear(200, 200)
         self.fc3 = nn.Linear(200, 20)
-        
-        self.ln5 = nn.LayerNorm([200])
-        self.ln6 = nn.LayerNorm([200])
-        
+
         self._init_weights()
 
     def forward(self, vision):
@@ -38,8 +35,8 @@ class EmbeddingNet(nn.Module):
         
         x = x.view(x.shape[0], self.h*8*8) # h*8*8
         
-        x = F.elu(self.ln5(self.fc1(x))) # 200
-        x = F.elu(self.ln6(self.fc2(x))) # 200
+        x = F.elu(self.fc1(x)) # 200
+        x = F.elu(self.fc2(x)) # 200
         x = self.fc3(x) # 20
 
         return x
@@ -51,10 +48,6 @@ class EmbeddingNet(nn.Module):
                 init.constant_(m.bias, 0)
             elif isinstance(m, nn.Linear):
                 init.normal_(m.weight, 0, 0.01)
-                init.constant_(m.bias, 0)
-            elif isinstance(m, nn.LayerNorm):
-                init.constant_(m.weight, 1)
-                # m.register_parameter('weight', None)
                 init.constant_(m.bias, 0)
             elif isinstance(m, nn.GroupNorm):
                 init.constant_(m.weight, 1)
