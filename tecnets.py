@@ -58,6 +58,8 @@ class TecNets(MetaLearner):
             q_actions = batch_task["test-action"]  # B,q_n,100,7
             jdxs = batch_task["idx"]               # B
 
+            B = len(U_visions)
+
             # with torch.no_grad(): # ? # TODO
             U_s, U_n = self.make_emb_dict(U_visions, jdxs, True)
             q_s, q_n = self.make_emb_dict(q_visions, jdxs, True)
@@ -72,7 +74,7 @@ class TecNets(MetaLearner):
             for (jdx, q_sj), (_, U_sj) in zip(q_s.items(), U_s.items()):
                 for (idx, U_si) in U_s.items():
                     if jdx == idx: continue
-                    loss_emb += self.cos_hinge_loss(q_sj, U_sj, U_si) * 1.0
+                    loss_emb += self.cos_hinge_loss(q_sj, U_sj, U_si) * 1.0 / (4032*B*100)
 
                 U_sj_list.append(U_sj) # prepare for ctr_net forwarding
 
@@ -82,7 +84,7 @@ class TecNets(MetaLearner):
 
             # ---- calc loss_ctr ----
 
-            for i in range(len(U_visions)):
+            for i in range(B):
                 U_vision = U_visions[i].view(U_n*100,3,125,125)
                 U_state = U_states[i].view(U_n*100,20)
                 U_action = U_actions[i].view(U_n*100,7)
@@ -93,14 +95,14 @@ class TecNets(MetaLearner):
                 U_sj_q_inp = U_sj_list[i].repeat_interleave(100*q_n, dim=0)
 
                 U_out = self.ctr_net(U_vision.to(device), U_sj_U_inp, U_state.to(device))
-                loss_ctr_U += self.loss_fn(U_out, U_action.to(device)) * len(U_vision) * 0.1
+                loss_ctr_U += self.loss_fn(U_out, U_action.to(device)) * len(U_vision) * 0.1 / (B*100)
                 # _loss_ctr_U = self.loss_fn(U_out, U_action.to(device)) * len(U_vision) * 0.1
                 # if train:
                 #     _loss_ctr_U.backward(retain_graph=True) # memory saving
                 # loss_ctr_U += _loss_ctr_U.item()
 
                 q_out = self.ctr_net(q_vision.to(device), U_sj_q_inp, q_state.to(device))
-                loss_ctr_q += self.loss_fn(q_out, q_action.to(device)) * len(q_vision) * 0.1
+                loss_ctr_q += self.loss_fn(q_out, q_action.to(device)) * len(q_vision) * 0.1 / (B*100)
                 # _loss_ctr_q = self.loss_fn(q_out, q_action.to(device)) * len(q_vision) * 0.1
                 # if train:
                 #     _loss_ctr_q.backward()
