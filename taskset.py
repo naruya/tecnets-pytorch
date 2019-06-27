@@ -31,8 +31,8 @@ class MILTaskset(Taskset):
         self.n_tasks = len(gif_dirs)
 
         if val_size:
-            self.n_valid = int(self.n_tasks*val_size)
-            self.n_train = self.n_tasks - self.n_valid
+            self.n_valid = 64 # int(self.n_tasks*val_size)
+            self.n_train = 704 # self.n_tasks - self.n_valid
             if not valid:
                 self.n_tasks = self.n_train
             else:
