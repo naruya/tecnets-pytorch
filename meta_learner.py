@@ -31,6 +31,14 @@ class MetaLearner(object):
         params = list(self.emb_net.parameters()) + list(self.ctr_net.parameters())
         self.opt = Adam(params, lr=5.0*10e-4)
 
+        print("emb_net params")
+        for name, param in self.emb_net.named_parameters():
+            print(name, param.shape)
+
+        print("ctr_net params")
+        for name, param in self.ctr_net.named_parameters():
+            print(name, param.shape)
+
     def save_emb_net(self, model_path):
         torch.save(self.emb_net.state_dict(), model_path)
 
