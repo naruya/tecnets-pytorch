@@ -2,6 +2,7 @@ import os
 import glob
 import torch
 import numpy as np
+import subprocess
 from natsort import natsorted
 from torch.utils.data import Dataset as Taskset
 from utils import make_cache
@@ -42,29 +43,57 @@ class MILTaskset(Taskset):
         self.scale = torch.from_numpy(np.array(self.scale, np.float32))
         self.bias = torch.from_numpy(np.array(self.bias, np.float32))
 
+        print("n_tasks:", self.n_tasks)
+        print("load all tasks")
+        self.tasks = []
+
+        for idx in tqdm(range(self.n_tasks)):
+            if valid:
+                idx += self.n_train
+            demos = []
+            for j in range(6,18): # [1]
+                path = os.path.join(demo_dir, "cache", "task"+str(idx), "demo"+str(j)+".pt")
+                demos.append(torch.load(path)) # {vision, state, action}
+            visions, states, actions = [], [], []
+            for demo in demos:
+                visions.append(demo['vision']) # Don't normalize now!
+                state = torch.matmul(demo['state'], self.scale) + self.bias
+                states.append(state)
+                actions.append(demo['action']) # -2.0~+2.0
+            visions = torch.stack(visions) # 12,100,64,64,3
+            states = torch.stack(states)   # 12,100,20
+            actions = torch.stack(actions) # 12,100,7
+            self.tasks.append({'vision':visions, 'state':states, 'action':actions})
+
+        _cmd = "nvidia-smi"
+        subprocess.call(_cmd.split())
+
     def __len__(self):
         return self.n_tasks
 
     def __getitem__(self, idx):
 
-        if self.valid:
-            idx += self.n_train
-
-        train_indices = np.random.choice(range(6,18), size=self.train_n_shot, replace=False)
-        test_indices = np.random.choice(list(set(range(6,18))-set(train_indices)),
+        train_indices = np.random.choice(range(12), size=self.train_n_shot, replace=False)
+        test_indices = np.random.choice(list(set(range(12))-set(train_indices)),
                                         size=self.test_n_shot, replace=False)
 
-        train_demos = [torch.load(os.path.join(self.demo_dir, "cache", "task"+str(idx), "demo"+str(j)+".pt"))
-                       for j in train_indices] # n,100,125,125,3
-        test_demos = [torch.load(os.path.join(self.demo_dir, "cache", "task"+str(idx), "demo"+str(j)+".pt"))
-                      for j in test_indices] # n,100,125,125,3
+        task = self.tasks[idx]
+
+        train_vision = task['vision'][train_indices] # k,100,64,64,3
+        train_state = task['state'][train_indices]   # k,100,20
+        train_action = task['action'][train_indices] # k,100,7
+        test_vision = task['vision'][test_indices]   # k,100,64,64,3
+        test_state = task['state'][test_indices]     # k,100,20
+        test_action = task['action'][test_indices]   # k,100,7
+
+        train_vision = (train_vision.permute(0,1,4,2,3).to(torch.float32)-127.5)/127.5
+        test_vision = (test_vision.permute(0,1,4,2,3).to(torch.float32)-127.5)/127.5
 
         return {
-            "train-vision": ((torch.stack([demo['vision'] for demo in train_demos]).permute(0,1,4,2,3).to(torch.float32)-127.5)/127.5),
-            "train-state": torch.stack([torch.matmul(demo['state'], self.scale) + self.bias for demo in train_demos]),
-            "train-action": torch.stack([demo['action'] for demo in train_demos]),
-            "test-vision": ((torch.stack([demo['vision'] for demo in test_demos]).permute(0,1,4,2,3).to(torch.float32)-127.5)/127.5),
-            "test-state": torch.stack([torch.matmul(demo['state'], self.scale) + self.bias for demo in test_demos]),
-            "test-action": torch.stack([demo['action'] for demo in test_demos]),
-            'idx': idx
+            "train-vision": train_vision,
+            "train-state": train_state,
+            "train-action": train_action,
+            "test-vision": test_vision,
+            "test-state": test_state,
+            "test-action": test_action,
         }
