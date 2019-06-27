@@ -40,8 +40,7 @@ if __name__ == '__main__':
                         + "_" + commit \
                         + "_B"+str(args.num_batch_tasks) \
                         + "_size125" \
-                        + "_shot" + str(args.train_n_shot) + "-" + str(args.test_n_shot) \
-                        + "_lr" + str(args.lr)
+                        + "_shot" + str(args.train_n_shot) + "-" + str(args.test_n_shot)
 
     print(log_dir)
     os.mkdir(log_dir)
