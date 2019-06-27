@@ -21,6 +21,10 @@ if __name__ == '__main__':
     parser.add_argument('--state_path', type=str, default="../mil/data/sim_push_common/scale_and_bias_sim_push.pkl")
     parser.add_argument('--train_n_shot', type=int, default=1)
     parser.add_argument('--test_n_shot', type=int, default=1)
+    parser.add_argument('--resume_epoch', type=int, default=None)
+    parser.add_argument('--emb_path', type=str, default=None)
+    parser.add_argument('--ctr_path', type=str, default=None)
+    parser.add_argument('--opt_path', type=str, default=None)
     parser.add_argument('--seed', type=int, default=123)
     args = parser.parse_args()
 
@@ -50,6 +54,16 @@ if __name__ == '__main__':
 
     meta_learner = TecNets(device=device, log_dir=log_dir)
 
+    if args.resume_epoch:
+        print("resuming...")
+        print(args.emb_path)
+        print(args.ctr_path)
+        print(args.opt_path)
+        meta_learner.resume(args.emb_path, args.ctr_path, args.opt_path, device)
+        resume_epoch = args.resume_epoch
+    else:
+        resume_epoch = 0
+
     train_task_loader = TaskLoader(MILTaskset(
         demo_dir=args.demo_dir, state_path=args.state_path,
         train_n_shot=args.train_n_shot, test_n_shot=1, val_size=0.1),
@@ -65,7 +79,7 @@ if __name__ == '__main__':
 
     meta_epochs = 5850
 
-    for epoch in range(meta_epochs):
+    for epoch in range(resume_epoch, meta_epochs):
         print("# {}".format(epoch+1))
         meta_learner.meta_train(train_task_loader, epoch, writer=train_writer)
         meta_learner.meta_test(valid_task_loader, writer=valid_writer)

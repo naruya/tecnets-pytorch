@@ -57,6 +57,11 @@ class MetaLearner(object):
     def load_opt(self, model_path, device):
         self.opt.load_state_dict(torch.load(model_path, map_location=device))
 
+    def resume(self, emb_path, ctr_path, opt_path, device):
+        self.load_emb_net(emb_path, device)
+        self.load_ctr_net(ctr_path, device)
+        self.load_opt(opt_path, device)
+
     def loss_fn(self, output, action):
         return F.mse_loss(output, action)
 
