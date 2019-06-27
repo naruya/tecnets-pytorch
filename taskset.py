@@ -4,6 +4,7 @@ import torch
 import numpy as np
 import subprocess
 from natsort import natsorted
+from tqdm import tqdm
 from torch.utils.data import Dataset as Taskset
 from utils import make_cache
 from utils import load_scale_and_bias
