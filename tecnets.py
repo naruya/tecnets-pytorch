@@ -60,7 +60,7 @@ class TecNets(MetaLearner):
 
             # with torch.no_grad(): # ? # TODO
             U_s, U_n = self.make_emb_dict(U_visions, jdxs, True)
-            q_s, q_n = self.make_emb_dict(q_visions, jdxs, False)
+            q_s, q_n = self.make_emb_dict(q_visions, jdxs, True)
             assert U_s.keys() == q_s.keys(), ""
 
             loss_emb, loss_ctr_U, loss_ctr_q = 0, 0, 0
