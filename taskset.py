@@ -97,4 +97,5 @@ class MILTaskset(Taskset):
             "test-vision": test_vision,
             "test-state": test_state,
             "test-action": test_action,
+            'idx': idx
         }
