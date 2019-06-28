@@ -19,9 +19,9 @@ class TecNets(MetaLearner):
         self.num_iter_val = [0,]
 
     def make_sentences(self, vision, normalize):
-        N, k, _F, _C, H, W = vision.shape                       # N,k,100,3,H,W
-        inp = torch.cat([vision[:,:,0], vision[:,:,-1]], dim=2) # N,k,6,H,W
-        sj = self.emb_net(inp.contiguous().view(N*k,6,H,W)).contiguous().view(N,k,20)     # N,k,20
+        N, k, _F, _C, H, W = vision.shape        # N,k,100,3,H,W
+        inp = vision[:,:,[0,-1]].view(N*k,6,H,W) # N,k,6,H,W
+        sj = self.emb_net(inp).view(N,k,20)      # N,k,20
         if normalize:
             sj = sj.mean(1) # N,20
             sj = sj / torch.norm(sj, 1)
@@ -43,13 +43,13 @@ class TecNets(MetaLearner):
             if train:
                 self.opt.zero_grad()
 
-            U_visions = batch_task["train-vision"] # B,U_n,100,3,125,125
-            U_states = batch_task["train-state"]   # B,U_n,100,20
-            U_actions = batch_task["train-action"] # B,U_n,100,7
-            q_visions = batch_task["test-vision"]  # B,q_n,100,3,125,125
-            q_states = batch_task["test-state"]    # B,q_n,100,20
-            q_actions = batch_task["test-action"]  # B,q_n,100,7
-            jdxs = batch_task["idx"]               # B
+            U_visions = batch_task["train-vision"].to(device) # B,U_n,100,3,125,125
+            U_states = batch_task["train-state"].to(device)   # B,U_n,100,20
+            U_actions = batch_task["train-action"].to(device) # B,U_n,100,7
+            q_visions = batch_task["test-vision"].to(device)  # B,q_n,100,3,125,125
+            q_states = batch_task["test-state"].to(device)    # B,q_n,100,20
+            q_actions = batch_task["test-action"].to(device)  # B,q_n,100,7
+            jdxs = batch_task["idx"].to(device)               # B
 
             B = len(U_visions)
             U_n, q_n = U_visions.shape[1], q_visions.shape[1]
@@ -72,19 +72,20 @@ class TecNets(MetaLearner):
 
             # ---- calc loss_ctr ----
 
-            U_vision = U_visions.contiguous().view(B*U_n*100,3,125,125)
-            U_state = U_states.contiguous().view(B*U_n*100,20)
-            U_action = U_actions.contiguous().view(B*U_n*100,7)
-            q_vision = q_visions.contiguous().view(B*q_n*100,3,125,125)
-            q_state = q_states.contiguous().view(B*q_n*100,20)
-            q_action = q_actions.contiguous().view(B*q_n*100,7)
+            U_vision = U_visions.view(B*U_n*100,3,125,125)
+            U_state = U_states.view(B*U_n*100,20)
+            U_action = U_actions.view(B*U_n*100,7)
+            q_vision = q_visions.view(B*q_n*100,3,125,125)
+            q_state = q_states.view(B*q_n*100,20)
+            q_action = q_actions.view(B*q_n*100,7)
             U_sj_U_inp = U_s.repeat_interleave(100*U_n, dim=0) # N*100*U_n, 20
             U_sj_q_inp = U_s.repeat_interleave(100*q_n, dim=0)
-            U_out = self.ctr_net(U_vision.to(device), U_sj_U_inp, U_state.to(device))
-            loss_ctr_U += self.loss_fn(U_out, U_action.to(device)) * len(U_vision) * 0.1 / (B*100.)
 
-            q_out = self.ctr_net(q_vision.to(device), U_sj_q_inp, q_state.to(device))
-            loss_ctr_q += self.loss_fn(q_out, q_action.to(device)) * len(q_vision) * 0.1 / (B*100.)
+            U_out = self.ctr_net(U_vision, U_sj_U_inp, U_state)
+            loss_ctr_U += self.loss_fn(U_out, U_action) * len(U_vision) * 0.1 / (B*100.)
+
+            q_out = self.ctr_net(q_vision, U_sj_q_inp, q_state)
+            loss_ctr_q += self.loss_fn(q_out, q_action) * len(q_vision) * 0.1 / (B*100.)
 
             loss = loss_emb + loss_ctr_U + loss_ctr_q
 
@@ -98,6 +99,10 @@ class TecNets(MetaLearner):
             loss_ctr_U_list.append(loss_ctr_U.item())
             loss_ctr_q_list.append(loss_ctr_q.item())
             loss_list.append(loss.item())
+
+            import subprocess
+            _cmd = "nvidia-smi"
+            subprocess.call(_cmd.split())
 
         # -- end batch tasks
 
