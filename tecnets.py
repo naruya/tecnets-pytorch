@@ -80,7 +80,6 @@ class TecNets(MetaLearner):
             q_action = q_actions.contiguous().view(B*q_n*100,7)
             U_sj_U_inp = U_s.repeat_interleave(100*U_n, dim=0) # N*100*U_n, 20
             U_sj_q_inp = U_s.repeat_interleave(100*q_n, dim=0)
-
             U_out = self.ctr_net(U_vision.to(device), U_sj_U_inp, U_state.to(device))
             loss_ctr_U += self.loss_fn(U_out, U_action.to(device)) * len(U_vision) * 0.1 / (B*100.)
 
@@ -94,7 +93,8 @@ class TecNets(MetaLearner):
                 loss.backward()
                 self.opt.step()
 
-            loss_emb_list.append(loss_emb.item())
+            # loss_emb_list.append(loss_emb.item())
+            loss_emb_list.append(loss_emb)
             loss_ctr_U_list.append(loss_ctr_U.item())
             loss_ctr_q_list.append(loss_ctr_q.item())
             loss_list.append(loss.item())
