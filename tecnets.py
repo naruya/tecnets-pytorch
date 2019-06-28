@@ -18,23 +18,16 @@ class TecNets(MetaLearner):
         self.num_iter_tr = [0,]
         self.num_iter_val = [0,]
 
-    def make_emb_dict(self, visions, jdxs, normalize):
-        device = self.device
-        s_dict = {}
-
-        for vision, jdx in zip(visions, jdxs):                   # k,100,3,125,125
-            inp = torch.cat([vision[:,0], vision[:,-1]], dim=1) # k,6,125,125
-            sj = self.emb_net(inp.to(device))
-
-            if normalize:
-                sj = sj.mean(0)
-                sj = sj / torch.norm(sj)
-            else:
-                sj = sj[0] # for the moment
-
-            s_dict[jdx.item()] = sj
-
-        return s_dict, len(inp)
+    def make_sentences(self, vision, normalize):
+        N, k, _F, _C, H, W = vision.shape                       # N,k,100,3,H,W
+        inp = torch.cat([vision[:,:,0], vision[:,:,-1]], dim=2) # N,k,6,H,W
+        sj = self.emb_net(inp.contiguous().view(N*k,6,H,W)).contiguous().view(N,k,20)     # N,k,20
+        if normalize:
+            sj = sj.mean(1) # N,20
+            sj = sj / torch.norm(sj, 1)
+        else:
+            sj = sj[:,0]    # N,20
+        return sj
 
     def cos_hinge_loss(self, q_sj, U_sj, U_si):
         real = torch.dot(q_sj, U_sj)
@@ -59,24 +52,19 @@ class TecNets(MetaLearner):
             jdxs = batch_task["idx"]               # B
 
             B = len(U_visions)
+            U_n, q_n = U_visions.shape[1], q_visions.shape[1]
 
-            # with torch.no_grad(): # ? # TODO
-            U_s, U_n = self.make_emb_dict(U_visions, jdxs, True)
-            q_s, q_n = self.make_emb_dict(q_visions, jdxs, True)
-            assert U_s.keys() == q_s.keys(), ""
+            U_s = self.make_sentences(U_visions, True) # B,20
+            # q_s = self.make_sentences(q_visions, True) # B,20
 
             loss_emb, loss_ctr_U, loss_ctr_q = 0, 0, 0
 
             # ---- calc loss_emb ----
 
-            U_sj_list = [] # ctr_net input sentences
-
-            for (jdx, q_sj), (_, U_sj) in zip(q_s.items(), U_s.items()):
-                for (idx, U_si) in U_s.items():
-                    if jdx == idx: continue
-                    loss_emb += self.cos_hinge_loss(q_sj, U_sj, U_si) * 1.0 / (4032*B*100)
-
-                U_sj_list.append(U_sj) # prepare for ctr_net forwarding
+            # for (jdx, q_sj), (_, U_sj) in zip(q_s.items(), U_s.items()): # for idx in range(64): ??
+            #     for (idx, U_si) in U_s.items():
+            #         if jdx == idx: continue
+            #         loss_emb += self.cos_hinge_loss(q_sj, U_sj, U_si) * 1.0 / (4032*B*100)
 
             # if train:
             #     loss_emb.backward(retain_graph=True) # memory saving
@@ -84,29 +72,20 @@ class TecNets(MetaLearner):
 
             # ---- calc loss_ctr ----
 
-            for i in range(B):
-                U_vision = U_visions[i].view(U_n*100,3,125,125)
-                U_state = U_states[i].view(U_n*100,20)
-                U_action = U_actions[i].view(U_n*100,7)
-                q_vision = q_visions[i].view(q_n*100,3,125,125)
-                q_state = q_states[i].view(q_n*100,20)
-                q_action = q_actions[i].view(q_n*100,7)
-                U_sj_U_inp = U_sj_list[i].repeat_interleave(100*U_n, dim=0)
-                U_sj_q_inp = U_sj_list[i].repeat_interleave(100*q_n, dim=0)
+            U_vision = U_visions.contiguous().view(B*U_n*100,3,125,125)
+            U_state = U_states.contiguous().view(B*U_n*100,20)
+            U_action = U_actions.contiguous().view(B*U_n*100,7)
+            q_vision = q_visions.contiguous().view(B*q_n*100,3,125,125)
+            q_state = q_states.contiguous().view(B*q_n*100,20)
+            q_action = q_actions.contiguous().view(B*q_n*100,7)
+            U_sj_U_inp = U_s.repeat_interleave(100*U_n, dim=0) # N*100*U_n, 20
+            U_sj_q_inp = U_s.repeat_interleave(100*q_n, dim=0)
 
-                U_out = self.ctr_net(U_vision.to(device), U_sj_U_inp, U_state.to(device))
-                loss_ctr_U += self.loss_fn(U_out, U_action.to(device)) * len(U_vision) * 0.1 / (B*100)
-                # _loss_ctr_U = self.loss_fn(U_out, U_action.to(device)) * len(U_vision) * 0.1
-                # if train:
-                #     _loss_ctr_U.backward(retain_graph=True) # memory saving
-                # loss_ctr_U += _loss_ctr_U.item()
+            U_out = self.ctr_net(U_vision.to(device), U_sj_U_inp, U_state.to(device))
+            loss_ctr_U += self.loss_fn(U_out, U_action.to(device)) * len(U_vision) * 0.1 / (B*100.)
 
-                q_out = self.ctr_net(q_vision.to(device), U_sj_q_inp, q_state.to(device))
-                loss_ctr_q += self.loss_fn(q_out, q_action.to(device)) * len(q_vision) * 0.1 / (B*100)
-                # _loss_ctr_q = self.loss_fn(q_out, q_action.to(device)) * len(q_vision) * 0.1
-                # if train:
-                #     _loss_ctr_q.backward()
-                # loss_ctr_q += _loss_ctr_q.item()
+            q_out = self.ctr_net(q_vision.to(device), U_sj_q_inp, q_state.to(device))
+            loss_ctr_q += self.loss_fn(q_out, q_action.to(device)) * len(q_vision) * 0.1 / (B*100.)
 
             loss = loss_emb + loss_ctr_U + loss_ctr_q
 
