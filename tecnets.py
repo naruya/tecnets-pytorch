@@ -59,16 +59,13 @@ class TecNets(MetaLearner):
 
             loss_emb, loss_ctr_U, loss_ctr_q = 0, 0, 0
 
+            # lambda_emb = 0
             # ---- calc loss_emb ----
 
             # for (jdx, q_sj), (_, U_sj) in zip(q_s.items(), U_s.items()): # for idx in range(64): ??
             #     for (idx, U_si) in U_s.items():
             #         if jdx == idx: continue
             #         loss_emb += self.cos_hinge_loss(q_sj, U_sj, U_si) * 1.0 / (4032*B*100)
-
-            # if train:
-            #     loss_emb.backward(retain_graph=True) # memory saving
-            # loss_emb = loss_emb.item()
 
             # ---- calc loss_ctr ----
 
@@ -94,7 +91,6 @@ class TecNets(MetaLearner):
                 loss.backward()
                 self.opt.step()
 
-            # loss_emb_list.append(loss_emb.item())
             loss_emb_list.append(loss_emb)
             loss_ctr_U_list.append(loss_ctr_U.item())
             loss_ctr_q_list.append(loss_ctr_q.item())
