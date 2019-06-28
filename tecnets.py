@@ -59,7 +59,7 @@ class TecNets(MetaLearner):
 
             loss_emb, loss_ctr_U, loss_ctr_q = 0, 0, 0
 
-            # lambda_emb = 0
+            # lambda_emb = 0 ver. (original paper reported 58.56% success)
             # ---- calc loss_emb ----
 
             # for (jdx, q_sj), (_, U_sj) in zip(q_s.items(), U_s.items()): # for idx in range(64): ??
