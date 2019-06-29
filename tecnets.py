@@ -52,16 +52,16 @@ class TecNets(MetaLearner):
             if train:
                 self.opt.zero_grad()
 
-            U_visions = batch_task["train-vision"].to(device) # B,U_n,100,3,125,125
+            U_visions = batch_task["train-vision"].to(device) # B,U_n,100,3,H,W
             U_states = batch_task["train-state"].to(device)   # B,U_n,100,20
             U_actions = batch_task["train-action"].to(device) # B,U_n,100,7
-            q_visions = batch_task["test-vision"].to(device)  # B,q_n,100,3,125,125
+            q_visions = batch_task["test-vision"].to(device)  # B,q_n,100,3,H,W
             q_states = batch_task["test-state"].to(device)    # B,q_n,100,20
             q_actions = batch_task["test-action"].to(device)  # B,q_n,100,7
             jdxs = batch_task["idx"].to(device)               # B
 
-            B = len(U_visions)
-            U_n, q_n = U_visions.shape[1], q_visions.shape[1]
+            B, U_n, _F, _C, H, W = U_visions.shape
+            q_n = q_visions.shape[1]
 
             U_s = self.make_sentences(U_visions, True) # B,20
             # q_s = self.make_sentences(q_visions, True) # B,20
@@ -78,10 +78,10 @@ class TecNets(MetaLearner):
 
             # ---- calc loss_ctr ----
 
-            U_vision = U_visions.view(B*U_n*100,3,125,125)
+            U_vision = U_visions.view(B*U_n*100,3,H,W)
             U_state = U_states.view(B*U_n*100,20)
             U_action = U_actions.view(B*U_n*100,7)
-            q_vision = q_visions.view(B*q_n*100,3,125,125)
+            q_vision = q_visions.view(B*q_n*100,3,H,W)
             q_state = q_states.view(B*q_n*100,20)
             q_action = q_actions.view(B*q_n*100,7)
             U_sj_U_inp = U_s.repeat_interleave(100*U_n, dim=0) # N*100*U_n, 20

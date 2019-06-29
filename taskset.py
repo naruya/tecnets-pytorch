@@ -61,7 +61,7 @@ class MILTaskset(Taskset):
                 state = torch.matmul(demo['state'], self.scale) + self.bias
                 states.append(state)
                 actions.append(demo['action']) # -2.0~+2.0
-            visions = torch.stack(visions) # 12,100,64,64,3
+            visions = torch.stack(visions) # 12,100,H,W,3
             states = torch.stack(states)   # 12,100,20
             actions = torch.stack(actions) # 12,100,7
             self.tasks.append({'vision':visions, 'state':states, 'action':actions})
@@ -80,10 +80,10 @@ class MILTaskset(Taskset):
 
         task = self.tasks[idx]
 
-        train_vision = task['vision'][train_indices] # k,100,64,64,3
+        train_vision = task['vision'][train_indices] # k,100,H,W,3
         train_state = task['state'][train_indices]   # k,100,20
         train_action = task['action'][train_indices] # k,100,7
-        test_vision = task['vision'][test_indices]   # k,100,64,64,3
+        test_vision = task['vision'][test_indices]   # k,100,H,W,3
         test_state = task['state'][test_indices]     # k,100,20
         test_action = task['action'][test_indices]   # k,100,7
 

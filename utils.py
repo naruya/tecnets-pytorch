@@ -56,7 +56,7 @@ def make_cache(demo_dir):
 
         gif_dir = gif_dirs[i]
         gifs = natsorted(glob.glob(os.path.join(gif_dir, "cond*")))
-        vision = [vread(path) for path in np.array(gifs)] # n,100,125,125,125,3
+        vision = [vread(path) for path in np.array(gifs)] # n,100,H,W,3
 
         pkl_file = pkl_files[i]
         with open(pkl_file, 'rb') as f:

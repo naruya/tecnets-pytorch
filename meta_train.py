@@ -47,7 +47,7 @@ if __name__ == '__main__':
                             + "_" + branch \
                             + "_" + commit \
                             + "_B"+str(args.num_batch_tasks) \
-                            + "_size125" \
+                            + "_size64" \
                             + "_shot" + str(args.train_n_shot) + "-" + str(args.test_n_shot)
 
         print(log_dir)
