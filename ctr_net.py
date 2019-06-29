@@ -8,8 +8,9 @@ class ControlNet(nn.Module):
         super(ControlNet, self).__init__()
         
         self.h = h = 16
-        
-        self.conv1 = nn.Conv2d(3+20, h, kernel_size=5, stride=2, padding=2)
+        self.size = size = 64
+
+        self.conv1 = nn.Conv2d(3+20, h, kernel_size=5, stride=1, padding=2)
         self.conv2 = nn.Conv2d(h, h, kernel_size=5, stride=2, padding=2)
         self.conv3 = nn.Conv2d(h, h, kernel_size=5, stride=2, padding=2)
         self.conv4 = nn.Conv2d(h, h, kernel_size=5, stride=2, padding=2)
@@ -26,10 +27,11 @@ class ControlNet(nn.Module):
         self._init_weights()
 
     def forward(self, vision, sentence, state):
+        size = self.size
 
-        sentence = sentence.view(-1, 20, 1, 1).expand(-1, 20, 125, 125)
+        sentence = sentence.view(-1, 20, 1, 1).expand(-1, 20, size, size)
 
-        x = torch.cat((vision, sentence), 1) # 23x125x125
+        x = torch.cat((vision, sentence), 1) # 23x64x64
     
         x = F.elu(self.ln1(self.conv1(x))) # hx63x63
         x = F.elu(self.ln2(self.conv2(x))) # hx32x32

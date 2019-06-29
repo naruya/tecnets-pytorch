@@ -7,8 +7,8 @@ class EmbeddingNet(nn.Module):
         super(EmbeddingNet, self).__init__()
         
         self.h = h = 16
-        
-        self.conv1 = nn.Conv2d(3*2, h, kernel_size=5, stride=2, padding=2)
+
+        self.conv1 = nn.Conv2d(3*2, h, kernel_size=5, stride=1, padding=2)
         self.conv2 = nn.Conv2d(h, h, kernel_size=5, stride=2, padding=2)
         self.conv3 = nn.Conv2d(h, h, kernel_size=5, stride=2, padding=2)
         self.conv4 = nn.Conv2d(h, h, kernel_size=5, stride=2, padding=2)
@@ -26,7 +26,7 @@ class EmbeddingNet(nn.Module):
 
     def forward(self, vision):
         
-        x = vision # 6x125x125
+        x = vision # 6x64x64
 
         x = F.elu(self.ln1(self.conv1(x))) # hx63x63
         x = F.elu(self.ln2(self.conv2(x))) # hx32x32
