@@ -127,12 +127,14 @@ class TecNets(MetaLearner):
             self.meta_train(task_loader=task_loader, epoch=None, writer=writer, train=False)
 
     def make_test_sentence(self, demo_path, emb_net):
-        inp = (np.array(vread(demo_path).transpose(0,3,1,2)[[0,-1]].reshape(1,6,125,125)
-                        , np.float32)-127.5)/127.5  # 1,6,125,125
-        inp = torch.from_numpy(inp).to(self.device)
-        inp = emb_net(inp.to(self.device))[0]
-        return  inp / torch.norm(inp)
-    
+        inp = vread(demo_path)
+        # cv2.imshow("demo", inp[-1][:,:,::-1]); cv2.waitKey(10)
+        inp = torch.stack([torch.from_numpy(inp).to("cuda")]) # 1,F,H,W,C
+        inp = (inp.permute(0,1,4,2,3).to(torch.float32)-127.5)/127.5 # 1,F,C,H,W
+        inp = torch.stack([inp]) # 1,1,F,C,H,W # N,k,F,C,H,W
+        inp = self.make_sentences(inp, normalize=True) # 1,20,
+        return  inp
+
     def sim_test(self, env, demo_path):
         with torch.no_grad():
             self.emb_net.eval()
