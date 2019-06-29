@@ -24,8 +24,15 @@ class TecNets(MetaLearner):
         sj = self.emb_net(inp).view(N,k,20)      # N,k,20
         if normalize:
             sj = sj.mean(1) # N,20
-            sj = sj / torch.norm(sj, dim=1, keepdim=True)
+            _temp1 = torch.norm(sj, dim=1, keepdim=True)
+            sj = sj / _temp1
+
+            _temp2 = torch.norm(sj, dim=1, keepdim=True)
+            print("norm before:", _temp1.mean().data.cpu(), _temp1.std().data.cpu(), \
+                  ", norm after:", _temp2.mean().data.cpu(), _temp2.std().data.cpu())
+
         else:
+            assert False, "sentences are always normalized. (by author)"
             sj = sj[:,0]    # N,20
         return sj
 
@@ -97,10 +104,6 @@ class TecNets(MetaLearner):
             loss_ctr_U_list.append(loss_ctr_U.item())
             loss_ctr_q_list.append(loss_ctr_q.item())
             loss_list.append(loss.item())
-
-            import subprocess
-            _cmd = "nvidia-smi"
-            subprocess.call(_cmd.split())
 
         # -- end batch tasks
 
