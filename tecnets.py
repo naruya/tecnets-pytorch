@@ -24,16 +24,18 @@ class TecNets(MetaLearner):
         sj = self.emb_net(inp).view(N,k,20)      # N,k,20
         if normalize:
             sj = sj.mean(1) # N,20
-            sj = sj / torch.norm(sj, 1)
+            sj = sj / torch.norm(sj, dim=1, keepdim=True)
         else:
             sj = sj[:,0]    # N,20
         return sj
 
+    """
     def cos_hinge_loss(self, q_sj, U_sj, U_si):
         real = torch.dot(q_sj, U_sj)
         fake = torch.dot(q_sj, U_si)
         zero = torch.zeros(1).to(self.device)
         return torch.max(zero, 0.1 - real + fake)
+    """
 
     def meta_train(self, task_loader, epoch, writer=None, train=True):
         device = self.device
