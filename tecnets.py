@@ -36,13 +36,12 @@ class TecNets(MetaLearner):
             sj = sj[:,0]    # N,20
         return sj
 
-    """
     def cos_hinge_loss(self, q_sj, U_sj, U_si):
-        real = torch.dot(q_sj, U_sj)
-        fake = torch.dot(q_sj, U_si)
-        zero = torch.zeros(1).to(self.device)
-        return torch.max(zero, 0.1 - real + fake)
-    """
+        real = (q_sj*U_sj).sum(1) # 4032,
+        fake = (q_sj*U_si).sum(1) # 4032,
+        zero = torch.zeros(1).to(self.device) # 1,
+        loss = torch.max(0.1 - real + fake, zero) # 4032,
+        return loss
 
     def meta_train(self, task_loader, epoch, writer=None, train=True):
         device = self.device
@@ -58,23 +57,31 @@ class TecNets(MetaLearner):
             q_visions = batch_task["test-vision"].to(device)  # B,q_n,100,3,H,W
             q_states = batch_task["test-state"].to(device)    # B,q_n,100,20
             q_actions = batch_task["test-action"].to(device)  # B,q_n,100,7
-            jdxs = batch_task["idx"].to(device)               # B
 
             B, U_n, _F, _C, H, W = U_visions.shape
             q_n = q_visions.shape[1]
 
             U_s = self.make_sentences(U_visions, True) # B,20
-            # q_s = self.make_sentences(q_visions, True) # B,20
+            q_s = self.make_sentences(q_visions, True) # B,20
 
             loss_emb, loss_ctr_U, loss_ctr_q = 0, 0, 0
 
-            # lambda_emb = 0 ver. (original paper reported 58.56% success)
+            q_sj_list, U_sj_list, U_si_list = [], [], []
+
             # ---- calc loss_emb ----
 
-            # for (jdx, q_sj), (_, U_sj) in zip(q_s.items(), U_s.items()): # for idx in range(64): ??
-            #     for (idx, U_si) in U_s.items():
-            #         if jdx == idx: continue
-            #         loss_emb += self.cos_hinge_loss(q_sj, U_sj, U_si) * 1.0 / (4032*B*100)
+            for jdx in range(B):
+                for idx in range(B):
+                    if jdx == idx: continue
+                    q_sj_list.append(q_s[jdx])
+                    U_sj_list.append(U_s[jdx])
+                    U_si_list.append(U_s[idx])
+
+            q_sj = torch.stack(q_sj_list) # B*(B-1), 20
+            U_sj = torch.stack(U_sj_list) # B*(B-1), 20
+            U_si = torch.stack(U_si_list) # B*(B-1), 20
+
+            loss_emb += torch.mean(self.cos_hinge_loss(q_sj, U_sj, U_si)) * 1.0 / (B*100.)
 
             # ---- calc loss_ctr ----
 
@@ -100,7 +107,7 @@ class TecNets(MetaLearner):
                 loss.backward()
                 self.opt.step()
 
-            loss_emb_list.append(loss_emb)
+            loss_emb_list.append(loss_emb.item())
             loss_ctr_U_list.append(loss_ctr_U.item())
             loss_ctr_q_list.append(loss_ctr_q.item())
             loss_list.append(loss.item())
