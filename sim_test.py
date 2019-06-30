@@ -85,9 +85,9 @@ if __name__ == '__main__':
         # load xml file
         env = load_env(demo_info)
         path = agent.sim_test(env, demo_path)
-        # video_filename = gif_dir + 'task_' + str(task_id) + '_' + str(ind % trials_per_task) + '.gif'
-        # clip = mpy.ImageSequenceClip([img for img in path['image_obs']], fps=20)
-        # clip.write_gif(video_filename, fps=20)
+        video_filename = gif_dir + 'task_' + str(task_id) + '_' + str(ind % trials_per_task) + '.gif'
+        clip = mpy.ImageSequenceClip([img for img in path['image_obs']], fps=20)
+        clip.write_gif(video_filename, fps=20)
         env.close()
         sucess = eval_success(path)
         print(sucess)

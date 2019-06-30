@@ -29,15 +29,14 @@ class MetaLearner(object):
         self.ctr_net = torch.nn.DataParallel(self.ctr_net, device_ids=[0,1])
 
         params = list(self.emb_net.parameters()) + list(self.ctr_net.parameters())
-        self.opt = Adam(params, lr=5.0*10e-4)
+        self.opt = Adam(params, lr=5.0e-4)
 
-        print("emb_net params")
-        for name, param in self.emb_net.named_parameters():
-            print(name, param.shape)
-
-        print("ctr_net params")
-        for name, param in self.ctr_net.named_parameters():
-            print(name, param.shape)
+        print("opt")
+        print(self.opt)
+        print("emb")
+        print(self.emb_net)
+        print("ctr")
+        print(self.ctr_net)
 
     def save_emb_net(self, model_path):
         torch.save(self.emb_net.state_dict(), model_path)
