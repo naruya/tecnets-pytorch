@@ -12,35 +12,38 @@ from joblib import Parallel, delayed
 from gym.envs.mujoco.pusher import PusherEnv
 from tecnets import TecNets
 
-XML_PATH = 'sim_push_xmls/'
-CROP = False
+# XML_PATH = 'sim_push_xmls/'
+# CROP = False
 
+# this load_env cannot load train tasks
+# def load_env(demo_info):
+#     xml_filepath = demo_info['xml']
+#     suffix = xml_filepath[xml_filepath.index('pusher'):]
+#     prefix = XML_PATH + 'test2_ensure_woodtable_distractor_'
+#     xml_filepath = str(prefix + suffix)
+#     env = PusherEnv(**{'xml_file':xml_filepath, 'distractors': True})
+#     return env
 
 def load_env(demo_info):
-    xml_filepath = demo_info['xml']
-    suffix = xml_filepath[xml_filepath.index('pusher'):]
-    prefix = XML_PATH + 'test2_ensure_woodtable_distractor_'
-    xml_filepath = str(prefix + suffix)
-
+    xml_path = demo_info['xml']
+    xml_filepath = 'sim_push_xmls/' + xml_path.split("/")[-1]
     env = PusherEnv(**{'xml_file':xml_filepath, 'distractors': True})
     return env
 
 
-def load_demo(task_id, demo_dir, demo_inds):
-    demo_info = pickle.load(open(demo_dir+task_id+'.pkl', 'rb'))
-    demoX = demo_info['demoX'][demo_inds,:,:]
-    demoU = demo_info['demoU'][demo_inds,:,:]
-    d1, d2, _ = demoX.shape
-    demoX = np.reshape(demoX, [1, d1*d2, -1])
-    demoU = np.reshape(demoU, [1, d1*d2, -1])
-
-    # read in demo video
-    if CROP:
-        demo_gifs = [imageio.mimread(demo_dir+'crop_object_'+task_id+'/cond%d.samp0.gif' % demo_ind) for demo_ind in demo_inds]
-    else:
-        demo_gifs = [imageio.mimread(demo_dir+'object_'+task_id+'/cond%d.samp0.gif' % demo_ind) for demo_ind in demo_inds]
-
-    return demoX, demoU, demo_gifs, demo_info
+# def load_demo(task_id, demo_dir, demo_inds):
+#     demo_info = pickle.load(open(demo_dir+task_id+'.pkl', 'rb'))
+#     demoX = demo_info['demoX'][demo_inds,:,:]
+#     demoU = demo_info['demoU'][demo_inds,:,:]
+#     d1, d2, _ = demoX.shape
+#     demoX = np.reshape(demoX, [1, d1*d2, -1])
+#     demoU = np.reshape(demoU, [1, d1*d2, -1])
+#     # read in demo video
+#     if CROP:
+#         demo_gifs = [imageio.mimread(demo_dir+'crop_object_'+task_id+'/cond%d.samp0.gif' % demo_ind) for demo_ind in demo_inds]
+#     else:
+#         demo_gifs = [imageio.mimread(demo_dir+'object_'+task_id+'/cond%d.samp0.gif' % demo_ind) for demo_ind in demo_inds]
+#     return demoX, demoU, demo_gifs, demo_info
 
 
 def eval_success(path):
@@ -66,10 +69,11 @@ if __name__ == '__main__':
     device = f"cuda:{args.device_ids[0]}" if torch.cuda.is_available() else "cpu"
 
     files = glob.glob(os.path.join(args.demo_dir, '*.pkl'))
-    all_ids = [int(f.split('/')[-1][:-4]) for f in files]
-    # all_ids = [int(f.split('/')[-1][6:-4]) for f in files]
+    all_ids = [int(f.split('/')[-1][:-4]) for f in files] # test
+    # all_ids = [int(f.split('/')[-1][6:-4]) for f in files] # train
     all_ids.sort()
-    trials_per_task = 6
+    trials_per_task = 6 # test
+    # trials_per_task = 1 # train
 
     gif_dir = args.log_dir + '/evaluated_gifs/'
     agent = TecNets(device=device)
@@ -78,8 +82,8 @@ if __name__ == '__main__':
     def rollout(input_tuple):
         ind, task_id = input_tuple
         demo_ind = 1  # for consistency of comparison
-        demo_info = pickle.load(open(args.demo_dir + str(task_id) + '.pkl', 'rb'))
-        # demo_info = pickle.load(open(args.demo_dir + "demos_" + str(task_id) + '.pkl', 'rb'))
+        demo_info = pickle.load(open(args.demo_dir + str(task_id) + '.pkl', 'rb')) # test
+        # demo_info = pickle.load(open(args.demo_dir + "demos_" + str(task_id) + '.pkl', 'rb')) # train
         demo_path = args.demo_dir + 'object_' + str(task_id) + '/cond%d.samp0.gif' % demo_ind
 
         # load xml file
