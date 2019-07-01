@@ -119,6 +119,24 @@ class MetaLearner(object):
         else:
             image_obs, nonimage_obs = env.wrapped_env.wrapped_env.get_current_image_obs()
 
+        # ---- for mini version
+        import os
+        import sys
+        import cv2
+        import moviepy.editor as mpy
+        from utils import vread
+
+        if os.path.isfile("frame.gif"):
+            os.remove("frame.gif")
+
+        gif64 = [cv2.resize(image_obs, (64,64))]
+        clip = mpy.ImageSequenceClip(gif64, fps=20)
+        sys.stdout = open(os.devnull, 'w')
+        clip.write_gif("frame.gif", fps=20)
+        sys.stdout = sys.__stdout__
+        image_obs = vread("frame.gif", 1)[0]
+        # ----
+
         image_obses.append(image_obs)
         image_obs = (np.array(np.expand_dims(image_obs, 0).transpose(0, 3, 1, 2), np.float32)-127.5)/127.5
         image_obs = torch.from_numpy(image_obs).to(device)
@@ -133,6 +151,18 @@ class MetaLearner(object):
             o, r, done, env_info = env.step(a)
 
             image_obs, nonimage_obs = env.get_current_image_obs()
+
+            # ---- for mini version
+            if os.path.isfile("frame.gif"):
+                os.remove("frame.gif")
+
+            gif64 = [cv2.resize(image_obs, (64,64))]
+            clip = mpy.ImageSequenceClip(gif64, fps=20)
+            sys.stdout = open(os.devnull, 'w')
+            clip.write_gif("frame.gif", fps=20)
+            sys.stdout = sys.__stdout__
+            image_obs = vread("frame.gif", 1)[0]
+            # ----
 
             if done:
                 break
