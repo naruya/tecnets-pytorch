@@ -194,4 +194,4 @@ class MetaLearner(object):
             rewards=np.array(rewards),
             image_obs=np.array(image_obses),
             nonimage_obs=np.array(nonimage_obses),
-        )
+        ), sentence.cpu().numpy()
