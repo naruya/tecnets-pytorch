@@ -82,7 +82,7 @@ class MetaLearner(object):
         self.scale = torch.from_numpy(np.array(self.scale, np.float32)).to(device)
         self.bias = torch.from_numpy(np.array(self.bias, np.float32)).to(device)
 
-    def sim_test(self, env, demo_path, make_test_sentence, max_length=100):
+    def sim_test(self, env, demo_path, prefix, make_test_sentence, max_length=100):
         device = self.device
 
         sentence = make_test_sentence(demo_path, self.emb_net)
@@ -126,15 +126,17 @@ class MetaLearner(object):
         import moviepy.editor as mpy
         from utils import vread
 
-        if os.path.isfile("frame.gif"):
-            os.remove("frame.gif")
+        frame_path = prefix + "frame.gif"
+
+        if os.path.isfile(frame_path):
+            os.remove(frame_path)
 
         gif64 = [cv2.resize(image_obs, (64,64))]
         clip = mpy.ImageSequenceClip(gif64, fps=20)
         sys.stdout = open(os.devnull, 'w')
-        clip.write_gif("frame.gif", fps=20)
+        clip.write_gif(frame_path, fps=20)
         sys.stdout = sys.__stdout__
-        image_obs = vread("frame.gif", 1)[0]
+        image_obs = vread(frame_path, 1)[0]
         # ----
 
         image_obses.append(image_obs)
@@ -153,15 +155,15 @@ class MetaLearner(object):
             image_obs, nonimage_obs = env.get_current_image_obs()
 
             # ---- for mini version
-            if os.path.isfile("frame.gif"):
-                os.remove("frame.gif")
+            if os.path.isfile(frame_path):
+                os.remove(frame_path)
 
             gif64 = [cv2.resize(image_obs, (64,64))]
             clip = mpy.ImageSequenceClip(gif64, fps=20)
             sys.stdout = open(os.devnull, 'w')
-            clip.write_gif("frame.gif", fps=20)
+            clip.write_gif(frame_path, fps=20)
             sys.stdout = sys.__stdout__
-            image_obs = vread("frame.gif", 1)[0]
+            image_obs = vread(frame_path, 1)[0]
             # ----
 
             if done:
@@ -180,6 +182,11 @@ class MetaLearner(object):
             actions.append(np.squeeze(a))
 
             env.render()
+
+        # ----
+        if os.path.isfile(frame_path):
+            os.remove(frame_path)
+        # ----
 
         return dict(
             observations=np.array(observations),
