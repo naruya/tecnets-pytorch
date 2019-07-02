@@ -80,7 +80,7 @@ if __name__ == '__main__':
     agent.sim_mode(args.emb_model_path, args.ctr_model_path, state_path=args.state_path)
 
     def rollout(input_tuple):
-        ind, task_id = input_tuple
+        ind, (task_id, trial_id) = input_tuple
         demo_ind = 1  # for consistency of comparison
         demo_info = pickle.load(open(args.demo_dir + str(task_id) + '.pkl', 'rb')) # test
         # demo_info = pickle.load(open(args.demo_dir + "demos_" + str(task_id) + '.pkl', 'rb')) # train
@@ -88,7 +88,8 @@ if __name__ == '__main__':
 
         # load xml file
         env = load_env(demo_info)
-        path = agent.sim_test(env, demo_path)
+        prefix = "{}_{}_".format(task_id, trial_id)
+        path = agent.sim_test(env, demo_path, prefix)
         video_filename = gif_dir + 'task_' + str(task_id) + '_' + str(ind % trials_per_task) + '.gif'
         clip = mpy.ImageSequenceClip([img for img in path['image_obs']], fps=20)
         clip.write_gif(video_filename, fps=20)
@@ -98,7 +99,7 @@ if __name__ == '__main__':
         return sucess
 
 
-    task_ids = [task_id for task_id in all_ids for _ in range(trials_per_task)]
+    task_ids = [(task_id, trial_id) for task_id in all_ids for trial_id in range(trials_per_task)]
     result = Parallel(n_jobs=args.num_workers)([delayed(rollout)(x) for x in enumerate(task_ids)])
 
     num_success = sum(result)

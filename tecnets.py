@@ -147,8 +147,8 @@ class TecNets(MetaLearner):
         inp = self.make_sentences(inp, normalize=True) # 1,20,
         return  inp
 
-    def sim_test(self, env, demo_path):
+    def sim_test(self, env, demo_path, prefix):
         with torch.no_grad():
             self.emb_net.eval()
             self.ctr_net.eval()
-            return super(TecNets, self).sim_test(env, demo_path, self.make_test_sentence)
+            return super(TecNets, self).sim_test(env, demo_path, prefix, self.make_test_sentence)
