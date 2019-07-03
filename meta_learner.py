@@ -124,7 +124,7 @@ class MetaLearner(object):
         import sys
         import cv2
         import moviepy.editor as mpy
-        from utils import vread
+        from utils import vread, vwrite
 
         frame_path = prefix + "frame.gif"
 
@@ -132,10 +132,7 @@ class MetaLearner(object):
             os.remove(frame_path)
 
         gif64 = [cv2.resize(image_obs, (64,64))]
-        clip = mpy.ImageSequenceClip(gif64, fps=20)
-        sys.stdout = open(os.devnull, 'w')
-        clip.write_gif(frame_path, fps=20)
-        sys.stdout = sys.__stdout__
+        vwrite(frame_path, gif64)
         image_obs = vread(frame_path, 1)[0]
         # ----
 
@@ -159,10 +156,7 @@ class MetaLearner(object):
                 os.remove(frame_path)
 
             gif64 = [cv2.resize(image_obs, (64,64))]
-            clip = mpy.ImageSequenceClip(gif64, fps=20)
-            sys.stdout = open(os.devnull, 'w')
-            clip.write_gif(frame_path, fps=20)
-            sys.stdout = sys.__stdout__
+            vwrite(frame_path, gif64)
             image_obs = vread(frame_path, 1)[0]
             # ----
 
@@ -194,4 +188,4 @@ class MetaLearner(object):
             rewards=np.array(rewards),
             image_obs=np.array(image_obses),
             nonimage_obs=np.array(nonimage_obses),
-        ), sentence.cpu().numpy()
+        ), sentence.cpu().numpy()[0]
