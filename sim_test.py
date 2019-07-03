@@ -8,11 +8,11 @@ import json
 import numpy as np
 import torch
 import time
-import moviepy.editor as mpy
 from joblib import Parallel, delayed
 
 from gym.envs.mujoco.pusher import PusherEnv
 from tecnets import TecNets
+from utils import vwrite
 
 # this load_env cannot load train tasks
 # def load_env(demo_info):
@@ -53,6 +53,11 @@ if __name__ == '__main__':
 
     device = "cuda"
 
+    if args.eval:
+        print("-"*60)
+        print("!!!EVAL MODE!!! NOT AN OFFICIAL SCORE!")
+        print("-"*60)
+
     log_dir = "./test_log/" + datetime.now().strftime('%m%d-%H%M%S')
     print(log_dir)
     print(args.emb_path)
@@ -61,7 +66,7 @@ if __name__ == '__main__':
     os.makedirs(os.path.join(log_dir, "evaluated_gifs"), exist_ok=True)
 
     models = {'emb_path':args.emb_path, 'ctr_path':args.ctr_path}
-    with open(os.path.join(log_dir, "output.json"), "w") as f:
+    with open(os.path.join(log_dir, "models.json"), "w") as f:
         json.dump(models, f)
 
     files = glob.glob(os.path.join(args.demo_dir, '*.pkl'))
@@ -70,7 +75,7 @@ if __name__ == '__main__':
     all_ids.sort()
 
     if args.eval:
-        trials_per_task = 24
+        trials_per_task = 6
     else:
         trials_per_task = 6 # test_task
         # trials_per_task = 1 # train_task
@@ -83,13 +88,14 @@ if __name__ == '__main__':
         ind, (task_id, trial_id) = input_tuple
 
         if args.eval:
-            demo_ind = trial_id
+            demo_ind = trial_id + 9 # 0~11: right pushing, 12~23: left pushing. use [9:15].
         else:
             demo_ind = 1  # for consistency of comparison
 
         demo_info = pickle.load(open(args.demo_dir + str(task_id) + '.pkl', 'rb')) # test_task
         # demo_info = pickle.load(open(args.demo_dir + "demos_" + str(task_id) + '.pkl', 'rb')) # train_task
         demo_path = args.demo_dir + 'object_' + str(task_id) + '/cond%d.samp0.gif' % demo_ind
+        print(demo_path)
         env = load_env(demo_info)
         prefix = "{}_{}_".format(task_id, trial_id)
         path, sentence = agent.sim_test(env, demo_path, prefix)
@@ -99,14 +105,14 @@ if __name__ == '__main__':
 
         if not args.no_save_gif:
             video_filename = os.path.join(gif_dir, 'task_' + str(task_id) + '_' + str(ind % trials_per_task) + '.gif')
-            clip = mpy.ImageSequenceClip([img for img in path['image_obs']], fps=20)
-            clip.write_gif(video_filename, fps=20)
-            result = {'demo_path': demo_path, 'episode_path': video_filename, 'sentence': sentence, 'success': success}
+            gif = [img for img in path['image_obs']]
+            vwrite(video_filename, gif)
+            result = {'task_id': task_id, 'demo_path': demo_path, 'episode_path': video_filename, 'sentence': sentence, 'success': success}
         else:
-            result = {'demo_path': demo_path, 'sentence': sentence, 'success': success}
+            result = {'task_id': task_id, 'demo_path': demo_path, 'sentence': sentence, 'success': success}
         return result
 
-    task_ids = [(task_id, trial_id) for task_id in all_ids for trial_id in range(trials_per_task)]
+    task_ids = [(task_id, trial_id) for task_id in all_ids for trial_id in range(trials_per_task)][:111]
     results = Parallel(n_jobs=args.num_workers)([delayed(rollout)(x) for x in enumerate(task_ids)])
 
     with open(os.path.join(log_dir,"results.pkl"), "wb") as f:
