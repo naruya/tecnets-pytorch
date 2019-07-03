@@ -11,13 +11,22 @@ from tqdm import tqdm
 import os
 import torch
 
-# skvideo.ioのvreadより速いよ。
+import moviepy.editor as mpy 
+
+# faster than skvideo.io
 def vread(path, T=100):
     cap = cv2.VideoCapture(path)
     gif = [cap.read()[1][:,:,::-1] for i in range(T)]
     gif = np.array(gif)
     cap.release()
     return gif
+
+
+def vwrite(path, gif):
+    sys.stdout = open(os.devnull, 'w')
+    clip = mpy.ImageSequenceClip(gif, fps=20)
+    clip.write_gif(path, fps=20)
+    sys.stdout = sys.__stdout__
 
 
 # Not used in main function.
