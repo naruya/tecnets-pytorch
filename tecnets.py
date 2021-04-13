@@ -11,8 +11,8 @@ from utils import vread
 import time
 
 class TecNets(MetaLearner):
-    def __init__(self, device, log_dir=None, lr=None):
-        super(TecNets, self).__init__(device, log_dir, lr)
+    def __init__(self, device, lr=None):
+        super(TecNets, self).__init__(device, lr)
 
     def make_sentence(self, vision, normalize):
         N, k, _F, _C, H, W = vision.shape                       # N,k,100,3,H,W
@@ -52,7 +52,7 @@ class TecNets(MetaLearner):
                     self.opt.zero_grad()
                 loss_emb, loss_ctr_U, loss_ctr_q = 0, 0, 0
                 U_s_list, q_s_list = [], []
-
+            
             U_vision = tasks["train-vision"] # N,U_n,100,3,125,125
             U_state = tasks["train-state"]   # N,U_n,100,20
             U_action = tasks["train-action"] # N,U_n,100,7
@@ -131,17 +131,17 @@ class TecNets(MetaLearner):
 
         print("loss:", loss, ", loss_ctr_U:", loss_ctr_U, ", loss_ctr_q:", loss_ctr_q, ", loss_emb:", loss_emb)
 
-        if writer:
-            writer.add_scalar('loss_emb', loss_emb, epoch)
-            writer.add_scalar('loss_ctr_U', loss_ctr_U, epoch)
-            writer.add_scalar('loss_ctr_q', loss_ctr_q, epoch)
-            writer.add_scalar('loss_all', loss, epoch)
+        # if writer:
+        #     writer.add_scalar('loss_emb', loss_emb, epoch)
+        #     writer.add_scalar('loss_ctr_U', loss_ctr_U, epoch)
+        #     writer.add_scalar('loss_ctr_q', loss_ctr_q, epoch)
+        #     writer.add_scalar('loss_all', loss, epoch)
 
-        if train:
-            path = self.log_dir.split("/")[-1]+"_epoch"+str(epoch)+"_"+f'{loss:.4f}'
-            self.save_emb_net(self.log_dir+"/"+path+"_emb.pt")
-            self.save_ctr_net(self.log_dir+"/"+path+"_ctr.pt")
-            self.save_opt(self.log_dir+"/"+path+"_opt.pt")
+        # if train:
+        #     path = self.log_dir.split("/")[-1]+"_epoch"+str(epoch)+"_"+f'{loss:.4f}'
+        #     self.save_emb_net(self.log_dir+"/"+path+"_emb.pt")
+        #     self.save_ctr_net(self.log_dir+"/"+path+"_ctr.pt")
+        #     self.save_opt(self.log_dir+"/"+path+"_opt.pt")
 
     def meta_valid(self, task_loader, num_batch_tasks, num_load_tasks, epoch, writer):
         with torch.no_grad():

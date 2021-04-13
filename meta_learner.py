@@ -18,10 +18,9 @@ from utils import load_scale_and_bias
 import cv2
 
 class MetaLearner(object):
-    def __init__(self, device, log_dir, lr):
+    def __init__(self, device, lr):
         
         self.device = device
-        self.log_dir = log_dir
 
         self.emb_net = EmbeddingNet().to(device)
         self.ctr_net = ControlNet().to(device)
