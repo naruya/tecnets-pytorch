@@ -55,13 +55,14 @@ class TecNets(MetaLearner):
                     self.opt.zero_grad()
                 loss_emb, loss_ctr_U, loss_ctr_q = 0, 0, 0
                 support_sentence_list, query_sentence_list = [], []
-            support_image = tasks["images"] # N,U_n,100,3,125,125
-            support_state = tasks["states"]   # N,U_n,100,20
-            support_action = tasks["actions"] # N,U_n,100,7
-            query_image = tasks["images"]  # N,q_n,100,3,125,125
-            query_state = tasks["states"]    # N,q_n,100,20
-            query_action = tasks["actions"]  # N,q_n,100,7
-            # import ipdb; ipdb.set_trace()
+            support_image = tasks["support_images"] # N,U_n,100,3,125,125
+            support_state = tasks["support_states"]   # N,U_n,100,20
+            support_action = tasks["support_actions"] # N,U_n,100,7
+            query_image = tasks["query_images"]  # N,q_n,100,3,125,125
+            query_state = tasks["query_states"]    # N,q_n,100,20
+            query_action = tasks["query_actions"]  # N,q_n,100,7
+            import ipdb; ipdb.set_trace()
+            
             support_num, query_num = len(support_image[1]), len(query_image[1])
             size = support_image[0][0].shape[1] # 125 or 64
 
