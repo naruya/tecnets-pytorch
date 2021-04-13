@@ -7,41 +7,65 @@ from torch.utils.data import Dataset as Taskset
 from skimage.io import imread
 from skimage import data, io
 from PIL import Image
-
+import pickle 
 
 class test_dataset(Taskset):
     def __init__(self, demo_dir='/root/datasets/mil_sim_push/', train=True):
         # select the gif folder. 
         if train:
-            demo_paths = f'{demo_dir}train/task_*/cond*.samp0/*.gif'
+            # demo_paths = f'{demo_dir}train/task_*/cond*.samp0/*.gif'
             task_paths = f'{demo_dir}train/task_*.pkl'
         else:
-            demo_paths = f'{demo_dir}test/task_*/cond*.samp0/*.gif'
+            # demo_paths = f'{demo_dir}test/task_*/cond*.samp0/*.gif'
             task_paths = f'{demo_dir}test/task_*.pkl'
+        
         self.task_info_paths = glob.glob(task_paths) 
         # print(len(self.tasks))
         print(len(self.task_info_paths), self.task_info_paths[:10])
         # self.demo_paths = glob.glob(demo_paths)
         # print(len(self.demo_paths), self.demo_paths[:10])
 
-    def __getitem__(self, index):
+    def __getitem__(self, index, num_support=5, num_query=1):
         # train_demos_path = f'{self.demo_dir}train/task_{str(idx)}/cond{12}.samp0/{str(j)}.dif'
         # train_demo = torch.load(train_demos_files[0])
+        
         demo_path = self.task_info_paths[index][:-4] + '/cond*/0.gif'
         
         demo = glob.glob(demo_path)
+        assert len(demo) == 12
+        demo.sort()
+        print(demo)
+        
+        num_sample = num_support + num_query
+        random_sample_index = np.random.choice(len(demo), num_sample, replace=False)
+        print(random_sample_index)
+        
+        pickle_file = self.task_info_paths[index]
+        
+        with open(pickle_file, 'rb') as f:
+            data = pickle.load(f)
+        print(data.keys())
+        print(data['demo_selection'])
+        print(data['actions'].shape)
+        print(data['states'].shape)
 
+        actions, states = [], []
+        for sample_index in random_sample_index:
 
-        x = Image.open(self.demo_paths[index]).convert('RGB')
-        x = np.array(x)
-        print(x.shape)
-        io.imshow(x)
-        io.show()
+            actions.append(data['actions'][sample_index])
+            states.append(data['states'][sample_index])
+
+            x = Image.open(demo[sample_index]).convert('RGB')
+            x = np.array(x)
+            # print(x.shape)
+        print(len(actions), len(actions[0]), len(actions[0][0]))
+        # io.imshow(x)
+        # io.show()
         # print(len(x), len(x[0]))
         # print(np.max(x), np.min(x), np.mean(x), np.std(x))
         return x
     
-    def test_getitem(self, index):
+    def test_getitem(self, index, ):
         return self.__getitem__(index)
         
     def __len__(self):
