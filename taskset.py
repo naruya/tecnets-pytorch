@@ -25,9 +25,12 @@ class MILTaskset(Taskset):
             make_cache(demo_dir)
 
         # gif & pkl for all tasks
-        gif_dirs = natsorted(glob.glob(os.path.join(demo_dir, "object_*")))
-        pkl_files = natsorted(glob.glob(os.path.join(demo_dir, "*.pkl")))
+        gif_dirs = natsorted(glob.glob(os.path.join(demo_dir, "test/task_*")))
+        pkl_files = natsorted(glob.glob(os.path.join(demo_dir, "test/*.pkl")))
+        print(len(gif_dirs),len(gif_dirs)%num_batch_tasks)
         self.n_tasks = len(gif_dirs) - len(gif_dirs)%num_batch_tasks
+
+        print(len(gif_dirs), len(pkl_files))
         print("n_tasks:", self.n_tasks)
 
         gif_dirs = gif_dirs[:self.n_tasks]
@@ -41,11 +44,12 @@ class MILTaskset(Taskset):
             else:
                 self.n_tasks = self.n_valid
 
-        self.scale, self.bias = load_scale_and_bias(state_path)
-        self.scale = torch.from_numpy(np.array(self.scale, np.float32))
-        self.bias = torch.from_numpy(np.array(self.bias, np.float32))
+        # self.scale, self.bias = load_scale_and_bias(state_path)
+        # self.scale = torch.from_numpy(np.array(self.scale, np.float32))
+        # self.bias = torch.from_numpy(np.array(self.bias, np.float32))
 
     def __len__(self):
+        # print(self.n_tasks)
         return self.n_tasks
 
     def __getitem__(self, idx):
@@ -57,17 +61,21 @@ class MILTaskset(Taskset):
         test_indices = np.random.choice(list(set(range(6,18))-set(train_indices)),
                                         size=self.test_n_shot, replace=False)
 
-        train_demos = [torch.load(os.path.join(self.demo_dir, "cache", "task"+str(idx), "demo"+str(j)+".pt"))
-                       for j in train_indices] # n,100,125,125,3
+
+        train_demos = [torch.load(train_demos_file) for j in train_indices]
+        # train_demos = [torch.load(os.path.join(self.demo_dir, "cache", "task"+str(idx), "demo"+str(j)+".pt"))
+                    #    for j in train_indices] # n,100,125,125,3
         test_demos = [torch.load(os.path.join(self.demo_dir, "cache", "task"+str(idx), "demo"+str(j)+".pt"))
                       for j in test_indices] # n,100,125,125,3
 
         return {
             "train-vision": ((torch.stack([demo['vision'] for demo in train_demos]).permute(0,1,4,2,3).to(torch.float32)-127.5)/127.5),
-            "train-state": torch.stack([torch.matmul(demo['state'], self.scale) + self.bias for demo in train_demos]),
+            # "train-state": torch.stack([torch.matmul(demo['state'], self.scale) + self.bias for demo in train_demos]),
+            "train-state": torch.stack([demo['state'] for demo in train_demos]),
             "train-action": torch.stack([demo['action'] for demo in train_demos]),
             "test-vision": ((torch.stack([demo['vision'] for demo in test_demos]).permute(0,1,4,2,3).to(torch.float32)-127.5)/127.5),
-            "test-state": torch.stack([torch.matmul(demo['state'], self.scale) + self.bias for demo in test_demos]),
+            # "test-state": torch.stack([torch.matmul(demo['state'], self.scale) + self.bias for demo in test_demos]),
+            "test-state": torch.stack([demo['state'] for demo in test_demos]),
             "test-action": torch.stack([demo['action'] for demo in test_demos]),
             'idx': idx
         }
