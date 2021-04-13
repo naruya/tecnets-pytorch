@@ -75,7 +75,7 @@ if __name__ == '__main__':
                                    batch_size=args.num_load_tasks, 
                                    shuffle=True,
                                    num_workers=4, 
-                                   pin_memory=True, 
+                                   pin_memory=True,
                                    drop_last=True)
     valid_task_loader = DataLoader(Tecnetsdataset(demo_dir=args.demo_dir),
                                    batch_size=args.num_load_tasks, 
@@ -88,5 +88,5 @@ if __name__ == '__main__':
 
     for epoch in range(resume_epoch, meta_epochs):
         print("# {}".format(epoch+1))
-        meta_learner.meta_train(train_task_loader, args.num_batch_tasks, args.num_load_tasks, epoch)
-        meta_learner.meta_valid(valid_task_loader, args.num_batch_tasks, args.num_load_tasks, epoch)
+        meta_learner.meta_train(task_loader=train_task_loader, num_batch_tasks=args.num_batch_tasks, num_load_tasks=args.num_load_tasks, epoch=epoch)
+        meta_learner.meta_valid(task_loader=valid_task_loader, num_batch_tasks=args.num_batch_tasks, num_load_tasks=args.num_load_tasks, epoch=epoch)

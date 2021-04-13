@@ -14,30 +14,33 @@ class TecNets(MetaLearner):
     def __init__(self, device, lr=None):
         super(TecNets, self).__init__(device, lr)
 
-    def make_sentence(self, vision, normalize):
-        N, k, _F, _C, H, W = vision.shape                       # N,k,100,3,H,W
-        inp = torch.cat([vision[:,:,0], vision[:,:,-1]], dim=2) # N,k,6,H,W
-        sj = self.emb_net(inp.view(N*k,6,H,W)).view(N,k,20)     # N,k,20
+    def make_sentence(self, image, normalize):
+        N, k, _F, H, W, _C = 64, 6, 100, 125, 125, 3                       # N,k,100,3,H,W
+        inp = torch.cat([image[:,:,0], image[:,:,-1]], dim=2) # N,k,6,H,W
+        
+        sentence = self.emb_net(inp.view(N*k,6,H,W)).view(N,k,20)     # N,k,20
+        
         if normalize:
-            sj = sj.mean(1) # N,20
-            sj = sj / torch.norm(sj, 1)
+            sentence = sentence.mean(1) # N,20
+            sentence = sentence / torch.norm(sentence, 1)
         else:
-            sj = sj[:,0]    # N,20
-        return sj
+            sentence = sentence[:,0]    # N,20
 
-    def cos_hinge_loss(self, q_sj_list, U_sj_list, U_si_list):
-        q_sj = torch.stack(q_sj_list) # 4032, 20
-        U_sj = torch.stack(U_sj_list) # 4032, 20
+        return sentence
+
+    def cos_hinge_loss(self, query_sentence_list, support_sentence_list, U_si_list):
+        query_sentence = torch.stack(query_sentence_list) # 4032, 20
+        support_sentence = torch.stack(support_sentence_list) # 4032, 20
         U_si = torch.stack(U_si_list) # 4032, 20
 
-        real = (q_sj*U_sj).sum(1) # 4032,
-        fake = (q_sj*U_si).sum(1) # 4032,
+        real = (query_sentence*support_sentence).sum(1) # 4032,
+        fake = (query_sentence*U_si).sum(1) # 4032,
         zero = torch.zeros(1).to(self.device) # 1,
 
         loss = torch.max(0.1 - real + fake, zero) # 4032,
         return loss
 
-    def meta_train(self, task_loader, num_batch_tasks, num_load_tasks, epoch, writer=None, train=True):
+    def meta_train(self, task_loader, num_batch_tasks=64, num_load_tasks=4, epoch=1000, writer=None, train=True):
         device = self.device
 
         B = num_batch_tasks
@@ -51,40 +54,42 @@ class TecNets(MetaLearner):
                 if train:
                     self.opt.zero_grad()
                 loss_emb, loss_ctr_U, loss_ctr_q = 0, 0, 0
-                U_s_list, q_s_list = [], []
-            
-            U_vision = tasks["train-vision"] # N,U_n,100,3,125,125
-            U_state = tasks["train-state"]   # N,U_n,100,20
-            U_action = tasks["train-action"] # N,U_n,100,7
-            q_vision = tasks["test-vision"]  # N,q_n,100,3,125,125
-            q_state = tasks["test-state"]    # N,q_n,100,20
-            q_action = tasks["test-action"]  # N,q_n,100,7
-            U_n, q_n = U_vision.shape[1], q_vision.shape[1]
-            size = U_vision.shape[5] # 125 or 64
+                support_sentence_list, query_sentence_list = [], []
+            support_image = tasks["images"] # N,U_n,100,3,125,125
+            support_state = tasks["states"]   # N,U_n,100,20
+            support_action = tasks["actions"] # N,U_n,100,7
+            query_image = tasks["images"]  # N,q_n,100,3,125,125
+            query_state = tasks["states"]    # N,q_n,100,20
+            query_action = tasks["actions"]  # N,q_n,100,7
+            # import ipdb; ipdb.set_trace()
+            support_num, query_num = len(support_image[1]), len(query_image[1])
+            size = support_image[0][0].shape[1] # 125 or 64
 
-            U_sj = self.make_sentence(U_vision, normalize=True)  # N,20
-            q_sj = self.make_sentence(q_vision, normalize=True) # N,20
-            U_s_list.append(U_sj)
-            q_s_list.append(q_sj)
+            support_sentence = self.make_sentence(support_image, normalize=True)  # N,20
+            query_sentence = self.make_sentence(query_image, normalize=True) # N,20
+            
+            support_sentence_list.append(support_sentence)
+            query_sentence_list.append(query_sentence)
 
             # ---- calc loss_ctr ----
-            U_vision = U_vision.view(N*U_n*100,3,size,size).to(device) # N*U_n*100,C,H,W
-            U_state = U_state.view(N*U_n*100,20).to(device)            # N*U_n*100,20
-            U_action = U_action.view(N*U_n*100,7).to(device)           # N*U_n*100,7
-            q_vision = q_vision.view(N*q_n*100,3,size,size).to(device) # N*q_n*100,C,H,W
-            q_state = q_state.view(N*q_n*100,20).to(device)            # N*q_n*100,20
-            q_action = q_action.view(N*q_n*100,7).to(device)           # N*q_n*100,7
-            U_sj_U_inp = U_sj.repeat_interleave(100*U_n, dim=0)        # N*U_n*100,20
-            U_sj_q_inp = U_sj.repeat_interleave(100*q_n, dim=0)        # N*q_n*100,20
+            support_image = support_image.view(N*U_n*100,3,size,size).to(device) # N*U_n*100,C,H,W
+            support_state = support_state.view(N*U_n*100,20).to(device)            # N*U_n*100,20
+            support_action = support_action.view(N*U_n*100,7).to(device)           # N*U_n*100,7
+            
+            query_image = query_image.view(N*q_n*100,3,size,size).to(device) # N*q_n*100,C,H,W
+            query_state = query_state.view(N*q_n*100,20).to(device)            # N*q_n*100,20
+            query_action = query_action.view(N*q_n*100,7).to(device)           # N*q_n*100,7
+            support_sentence_U_inp = support_sentence.repeat_interleave(100*U_n, dim=0)        # N*U_n*100,20
+            support_sentence_q_inp = support_sentence.repeat_interleave(100*q_n, dim=0)        # N*q_n*100,20
 
-            U_out = self.ctr_net(U_vision, U_sj_U_inp, U_state)
-            _loss_ctr_U = self.loss_fn(U_out, U_action) * len(U_vision) * 0.1
+            U_out = self.ctr_net(support_image, support_sentence_U_inp, support_state)
+            _loss_ctr_U = self.loss_fn(U_out, support_action) * len(support_image) * 0.1
             if train:
                 _loss_ctr_U.backward(retain_graph=True) # memory saving
             loss_ctr_U += _loss_ctr_U.item()
 
-            q_out = self.ctr_net(q_vision, U_sj_q_inp, q_state)
-            _loss_ctr_q = self.loss_fn(q_out, q_action) * len(q_vision) * 0.1
+            q_out = self.ctr_net(query_image, support_sentence_q_inp, query_state)
+            _loss_ctr_q = self.loss_fn(q_out, query_action) * len(query_image) * 0.1
             if train:
                 _loss_ctr_q.backward(retain_graph=True) # memory saving
             loss_ctr_q += _loss_ctr_q.item()
@@ -93,20 +98,20 @@ class TecNets(MetaLearner):
             if ((i+1)*N) % B == 0:
 
                 # don't convert into list. graph informations will be lost. (and an error will occur)
-                U_s_list = torch.cat(U_s_list, 0) # N*(B/N),20 -> N,20
-                q_s_list = torch.cat(q_s_list, 0) # N*(B/N),20 -> N,20
+                support_sentence_list = torch.cat(support_sentence_list, 0) # N*(B/N),20 -> N,20
+                query_sentence_list = torch.cat(query_sentence_list, 0) # N*(B/N),20 -> N,20
 
-                q_sj_list, U_sj_list, U_si_list = [], [], []
+                query_sentence_list, support_sentence_list, U_si_list = [], [], []
 
                 # ---- calc loss_emb ----
-                for jdx, (q_sj, U_sj) in enumerate(zip(q_s_list, U_s_list)):
-                    for idx, U_si in enumerate(U_s_list):
+                for jdx, (query_sentence, support_sentence) in enumerate(zip(query_sentence_list, support_sentence_list)):
+                    for idx, U_si in enumerate(support_sentence_list):
                         if jdx == idx: continue
-                        q_sj_list.append(q_sj)
-                        U_sj_list.append(U_sj)
+                        query_sentence_list.append(query_sentence)
+                        support_sentence_list.append(support_sentence)
                         U_si_list.append(U_si)
 
-                _loss_emb = torch.sum(self.cos_hinge_loss(q_sj_list, U_sj_list, U_si_list)) * 1.0
+                _loss_emb = torch.sum(self.cos_hinge_loss(query_sentence_list, support_sentence_list, U_si_list)) * 1.0
 
                 if train:
                     _loss_emb.backward()
