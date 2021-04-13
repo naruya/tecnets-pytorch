@@ -1,15 +1,12 @@
-import os
 import glob
 import torch
 import numpy as np
-from natsort import natsorted
-from torch.utils.data import Dataset as Taskset
-from skimage.io import imread
+from torch.utils.data import Dataset
 from skimage import data, io
 from PIL import Image
 import pickle 
 
-class test_dataset(Taskset):
+class Tecnetsdataset(Dataset):
     def __init__(self, demo_dir='/root/datasets/mil_sim_push/', train=True):
         # select the gif folder. 
         if train:
