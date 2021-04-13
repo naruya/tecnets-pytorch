@@ -13,17 +13,11 @@ class test_dataset(Taskset):
     def __init__(self, demo_dir='/root/datasets/mil_sim_push/', train=True):
         # select the gif folder. 
         if train:
-            # demo_paths = f'{demo_dir}train/task_*/cond*.samp0/*.gif'
             task_paths = f'{demo_dir}train/task_*.pkl'
         else:
-            # demo_paths = f'{demo_dir}test/task_*/cond*.samp0/*.gif'
             task_paths = f'{demo_dir}test/task_*.pkl'
         
         self.task_info_paths = glob.glob(task_paths) 
-        # print(len(self.tasks))
-        # print(len(self.task_info_paths), self.task_info_paths[:10])
-        # self.demo_paths = glob.glob(demo_paths)
-        # print(len(self.demo_paths), self.demo_paths[:10])
 
     def __getitem__(self, index, num_support=5, num_query=1):
         # get data from task_paths.
@@ -35,7 +29,7 @@ class test_dataset(Taskset):
         num_sample = num_support + num_query
         random_sample_index = np.random.choice(12, num_sample, replace=False)
         # print(random_sample_index)
-        
+
         actions, states = [], [] # len(query + support), xx
         images = [] 
         for sample_index in random_sample_index:    
@@ -46,13 +40,11 @@ class test_dataset(Taskset):
             states.append(data['states'][sample_index])
 
         language_path = '/root/datasets/2021_instructions/' + data['demo_selection'].split('/')[-1][:-4] + '.npy'
-        print(language_path)
-        
         language = np.load(language_path)
-        print(language.shape)
-        print(np.array(actions).shape)
-        print(np.array(images).shape)
-        print(np.array(states).shape)
+        # print(language.shape)
+        # print(np.array(actions).shape)
+        # print(np.array(images).shape)
+        # print(np.array(states).shape)
 
         task_info = {
             'actions': actions,  # len(support + query), 100, 7.
@@ -68,17 +60,6 @@ class test_dataset(Taskset):
             x = Image.open(demo).convert('RGB')
             image.append(np.array(x))
         return image
-
-    def test_getitem(self, index, ):
-        return self.__getitem__(index)
         
     def __len__(self):
         return len(self.task_info_paths)
-
-# demo_dir = 
-
-test = test_dataset()
-# print(len(test))
-for i in range(1):
-    a = test.test_getitem(i)
-    # print(a)
