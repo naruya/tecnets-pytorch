@@ -21,50 +21,54 @@ class test_dataset(Taskset):
         
         self.task_info_paths = glob.glob(task_paths) 
         # print(len(self.tasks))
-        print(len(self.task_info_paths), self.task_info_paths[:10])
+        # print(len(self.task_info_paths), self.task_info_paths[:10])
         # self.demo_paths = glob.glob(demo_paths)
         # print(len(self.demo_paths), self.demo_paths[:10])
 
     def __getitem__(self, index, num_support=5, num_query=1):
-        # train_demos_path = f'{self.demo_dir}train/task_{str(idx)}/cond{12}.samp0/{str(j)}.dif'
-        # train_demo = torch.load(train_demos_files[0])
-        
-        demo_path = self.task_info_paths[index][:-4] + '/cond*/0.gif'
-        
-        demo = glob.glob(demo_path)
-        assert len(demo) == 12
-        demo.sort()
-        print(demo)
-        
-        num_sample = num_support + num_query
-        random_sample_index = np.random.choice(len(demo), num_sample, replace=False)
-        print(random_sample_index)
-        
-        pickle_file = self.task_info_paths[index]
-        
+        # get data from task_paths.
+        pickle_file = self.task_info_paths[index]     
         with open(pickle_file, 'rb') as f:
             data = pickle.load(f)
-        print(data.keys())
-        print(data['demo_selection'])
-        print(data['actions'].shape)
-        print(data['states'].shape)
 
-        actions, states = [], []
-        for sample_index in random_sample_index:
-
+        # sample query, support from 6 ~ 18.
+        num_sample = num_support + num_query
+        random_sample_index = np.random.choice(12, num_sample, replace=False)
+        # print(random_sample_index)
+        
+        actions, states = [], [] # len(query + support), xx
+        images = [] 
+        for sample_index in random_sample_index:    
+            demo_path = self.task_info_paths[index][:-4] + f'/cond{sample_index + 6}*/*'
+            demo_paths = glob.glob(demo_path) 
+            images.append(self._get_gif(demo_paths))
             actions.append(data['actions'][sample_index])
             states.append(data['states'][sample_index])
 
-            x = Image.open(demo[sample_index]).convert('RGB')
-            x = np.array(x)
-            # print(x.shape)
-        print(len(actions), len(actions[0]), len(actions[0][0]))
-        # io.imshow(x)
-        # io.show()
-        # print(len(x), len(x[0]))
-        # print(np.max(x), np.min(x), np.mean(x), np.std(x))
-        return x
+        language_path = '/root/datasets/2021_instructions/' + data['demo_selection'].split('/')[-1][:-4] + '.npy'
+        print(language_path)
+        
+        language = np.load(language_path)
+        print(language.shape)
+        print(np.array(actions).shape)
+        print(np.array(images).shape)
+        print(np.array(states).shape)
+
+        task_info = {
+            'actions': actions,  # len(support + query), 100, 7.
+            'states': states, # len(support + query), 100, 7.
+            'images': images,  # len(support + query), 100, 125, 125, 3.
+            'languages': language, # len(support + query), 100, 128.
+        }
+        return task_info
     
+    def _get_gif(self, demo_paths):
+        image = []
+        for demo in demo_paths:
+            x = Image.open(demo).convert('RGB')
+            image.append(np.array(x))
+        return image
+
     def test_getitem(self, index, ):
         return self.__getitem__(index)
         
