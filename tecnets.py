@@ -15,11 +15,16 @@ class TecNets(MetaLearner):
         super(TecNets, self).__init__(device, lr)
 
     def make_sentence(self, image, normalize):
-        N, k, _F, H, W, _C = 64, 6, 100, 125, 125, 3                       # N,k,100,3,H,W
+        N, k, _F, _C,  W, H = image.shape
+        print('image_shape : ',image.shape)                    # N,k,100,3,H,W
         inp = torch.cat([image[:,:,0], image[:,:,-1]], dim=2) # N,k,6,H,W
-        
-        sentence = self.emb_net(inp.view(N*k,6,H,W)).view(N,k,20)     # N,k,20
-        
+        # print(inp.shape)
+        inp = inp.view(N * k,6,H,W)
+        # print(inp.shape)
+
+        # import ipdb; ipdb.set_trace()
+        sentence = self.emb_net(inp.view(N * k,6,H,W)).view(N,k,20)     # N,k,20
+        print(sentence)
         if normalize:
             sentence = sentence.mean(1) # N,20
             sentence = sentence / torch.norm(sentence, 1)
@@ -33,8 +38,8 @@ class TecNets(MetaLearner):
         support_sentence = torch.stack(support_sentence_list) # 4032, 20
         U_si = torch.stack(U_si_list) # 4032, 20
 
-        real = (query_sentence*support_sentence).sum(1) # 4032,
-        fake = (query_sentence*U_si).sum(1) # 4032,
+        real = (query_sentence * support_sentence).sum(1) # 4032,
+        fake = (query_sentence * U_si).sum(1) # 4032,
         zero = torch.zeros(1).to(self.device) # 1,
 
         loss = torch.max(0.1 - real + fake, zero) # 4032,
@@ -47,24 +52,27 @@ class TecNets(MetaLearner):
         N = num_load_tasks  # e.g. 16
         loss_emb_list, loss_ctr_U_list, loss_ctr_q_list, loss_list = [], [], [], []
 
-        # N tasks * (n_tasks/N)iter # e.g. 16task * 44iter
+        # N tasks  *  (n_tasks/N)iter # e.g. 16task  *  44iter
         for i, tasks in enumerate(tqdm(task_loader)):
 
-            if (i*N) % B == 0:
+            if (i * N) % B == 0:
                 if train:
                     self.opt.zero_grad()
                 loss_emb, loss_ctr_U, loss_ctr_q = 0, 0, 0
                 support_sentence_list, query_sentence_list = [], []
-            support_image = tasks["support_images"] # N,U_n,100,3,125,125
-            support_state = tasks["support_states"]   # N,U_n,100,20
-            support_action = tasks["support_actions"] # N,U_n,100,7
-            query_image = tasks["query_images"]  # N,q_n,100,3,125,125
-            query_state = tasks["query_states"]    # N,q_n,100,20
-            query_action = tasks["query_actions"]  # N,q_n,100,7
-            import ipdb; ipdb.set_trace()
+
+            support_image = tasks["support_images"] # N,support_num,100,3,125,125
+            support_state = tasks["support_states"]   # N,support_num,100,20
+            support_action = tasks["support_actions"] # N,support_num,100,7
+            support_language = tasks['support_languages']  # len(support), 1, 128.
+
+            query_image = tasks["query_images"]  # N,query_num,100,3,125,125
+            query_state = tasks["query_states"]    # N,query_num,100,20
+            query_action = tasks["query_actions"]  # N,query_num,100,7
+            query_language = tasks['query_languages']  # # len(query), 1, 128.
             
             support_num, query_num = len(support_image[1]), len(query_image[1])
-            size = support_image[0][0].shape[1] # 125 or 64
+            size = support_image.shape[4] # 125 or 64
 
             support_sentence = self.make_sentence(support_image, normalize=True)  # N,20
             query_sentence = self.make_sentence(query_image, normalize=True) # N,20
@@ -73,34 +81,39 @@ class TecNets(MetaLearner):
             query_sentence_list.append(query_sentence)
 
             # ---- calc loss_ctr ----
-            support_image = support_image.view(N*U_n*100,3,size,size).to(device) # N*U_n*100,C,H,W
-            support_state = support_state.view(N*U_n*100,20).to(device)            # N*U_n*100,20
-            support_action = support_action.view(N*U_n*100,7).to(device)           # N*U_n*100,7
+            support_image = support_image.view(N * support_num * 100,3,size,size).to(device) # N * support_num * 100,C,H,W
+            support_state = support_state.view(N * support_num * 100,20).to(device)            # N * support_num * 100,20
+            support_action = support_action.view(N * support_num * 100,7).to(device)           # N * support_num * 100,7
             
-            query_image = query_image.view(N*q_n*100,3,size,size).to(device) # N*q_n*100,C,H,W
-            query_state = query_state.view(N*q_n*100,20).to(device)            # N*q_n*100,20
-            query_action = query_action.view(N*q_n*100,7).to(device)           # N*q_n*100,7
-            support_sentence_U_inp = support_sentence.repeat_interleave(100*U_n, dim=0)        # N*U_n*100,20
-            support_sentence_q_inp = support_sentence.repeat_interleave(100*q_n, dim=0)        # N*q_n*100,20
+            query_image = query_image.view(N * query_num * 100,3,size,size).to(device) # N * query_num * 100,C,H,W
+            query_state = query_state.view(N * query_num * 100,20).to(device)            # N * query_num * 100,20
+            query_action = query_action.view(N * query_num * 100,7).to(device)           # N * query_num * 100,7
+            support_sentence_U_inp = support_sentence.repeat_interleave(100 * support_num, dim=0)        # N * support_num * 100,20
+            support_sentence_q_inp = support_sentence.repeat_interleave(100 * query_num, dim=0)        # N * query_num * 100,20
 
             U_out = self.ctr_net(support_image, support_sentence_U_inp, support_state)
-            _loss_ctr_U = self.loss_fn(U_out, support_action) * len(support_image) * 0.1
+            _loss_ctr_U = self.loss_fn(U_out, support_action)  *  len(support_image)  *  0.1
+            
+            import ipdb; ipdb.set_trace()
+            
             if train:
                 _loss_ctr_U.backward(retain_graph=True) # memory saving
             loss_ctr_U += _loss_ctr_U.item()
 
             q_out = self.ctr_net(query_image, support_sentence_q_inp, query_state)
-            _loss_ctr_q = self.loss_fn(q_out, query_action) * len(query_image) * 0.1
+            _loss_ctr_q = self.loss_fn(q_out, query_action) * len(query_image)  *  0.1
+            
+            
             if train:
                 _loss_ctr_q.backward(retain_graph=True) # memory saving
             loss_ctr_q += _loss_ctr_q.item()
             # ----
 
-            if ((i+1)*N) % B == 0:
+            if ((i+1) * N) % B == 0:
 
                 # don't convert into list. graph informations will be lost. (and an error will occur)
-                support_sentence_list = torch.cat(support_sentence_list, 0) # N*(B/N),20 -> N,20
-                query_sentence_list = torch.cat(query_sentence_list, 0) # N*(B/N),20 -> N,20
+                support_sentence_list = torch.cat(support_sentence_list, 0) # N * (B/N),20 -> N,20
+                query_sentence_list = torch.cat(query_sentence_list, 0) # N * (B/N),20 -> N,20
 
                 query_sentence_list, support_sentence_list, U_si_list = [], [], []
 
@@ -112,7 +125,7 @@ class TecNets(MetaLearner):
                         support_sentence_list.append(support_sentence)
                         U_si_list.append(U_si)
 
-                _loss_emb = torch.sum(self.cos_hinge_loss(query_sentence_list, support_sentence_list, U_si_list)) * 1.0
+                _loss_emb = torch.sum(self.cos_hinge_loss(query_sentence_list, support_sentence_list, U_si_list))  *  1.0
 
                 if train:
                     _loss_emb.backward()
