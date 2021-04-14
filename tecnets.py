@@ -34,6 +34,7 @@ class TecNets(MetaLearner):
         return sentence
 
     def cos_hinge_loss(self, query_sentence_list, support_sentence_list, U_si_list):
+        print(len(query_sentence_list))
         query_sentence = torch.stack(query_sentence_list) # 4032, 20
         support_sentence = torch.stack(support_sentence_list) # 4032, 20
         U_si = torch.stack(U_si_list) # 4032, 20
@@ -94,7 +95,7 @@ class TecNets(MetaLearner):
             U_out = self.ctr_net(support_image, support_sentence_U_inp, support_state)
             _loss_ctr_U = self.loss_fn(U_out, support_action)  *  len(support_image)  *  0.1
             
-            import ipdb; ipdb.set_trace()
+            # import ipdb; ipdb.set_trace()
             
             if train:
                 _loss_ctr_U.backward(retain_graph=True) # memory saving
@@ -103,7 +104,7 @@ class TecNets(MetaLearner):
             q_out = self.ctr_net(query_image, support_sentence_q_inp, query_state)
             _loss_ctr_q = self.loss_fn(q_out, query_action) * len(query_image)  *  0.1
             
-            
+
             if train:
                 _loss_ctr_q.backward(retain_graph=True) # memory saving
             loss_ctr_q += _loss_ctr_q.item()
@@ -115,17 +116,17 @@ class TecNets(MetaLearner):
                 support_sentence_list = torch.cat(support_sentence_list, 0) # N * (B/N),20 -> N,20
                 query_sentence_list = torch.cat(query_sentence_list, 0) # N * (B/N),20 -> N,20
 
-                query_sentence_list, support_sentence_list, U_si_list = [], [], []
+                query_sentence_j_list, support_sentence_j_list, U_si_list = [], [], []
 
                 # ---- calc loss_emb ----
-                for jdx, (query_sentence, support_sentence) in enumerate(zip(query_sentence_list, support_sentence_list)):
+                for jdx, (query_sentence_j, support_sentence_j) in enumerate(zip(query_sentence_list, support_sentence_list)):
                     for idx, U_si in enumerate(support_sentence_list):
                         if jdx == idx: continue
-                        query_sentence_list.append(query_sentence)
-                        support_sentence_list.append(support_sentence)
+                        query_sentence_j_list.append(query_sentence_j)
+                        support_sentence_j_list.append(support_sentence_j)
                         U_si_list.append(U_si)
 
-                _loss_emb = torch.sum(self.cos_hinge_loss(query_sentence_list, support_sentence_list, U_si_list))  *  1.0
+                _loss_emb = torch.sum(self.cos_hinge_loss(query_sentence_j_list, support_sentence_j_list, U_si_list))  *  1.0
 
                 if train:
                     _loss_emb.backward()
@@ -162,11 +163,11 @@ class TecNets(MetaLearner):
         #     self.save_ctr_net(self.log_dir+"/"+path+"_ctr.pt")
         #     self.save_opt(self.log_dir+"/"+path+"_opt.pt")
 
-    def meta_valid(self, task_loader, num_batch_tasks, num_load_tasks, epoch, writer):
+    def meta_valid(self, task_loader, num_batch_tasks, num_load_tasks, epoch):
         with torch.no_grad():
             self.emb_net.eval()
             self.ctr_net.eval()
-            self.meta_train(task_loader, num_batch_tasks, num_load_tasks, epoch, writer, False)
+            self.meta_train(task_loader, num_batch_tasks, num_load_tasks, epoch, False)
 
     def make_test_sentence(self, demo_path, emb_net):
         inp = vread(demo_path)
