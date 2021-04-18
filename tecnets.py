@@ -16,7 +16,7 @@ class TecNets(MetaLearner):
 
     def make_sentence(self, image, normalize):
         N, k, _F, _C,  W, H = image.shape
-        print('image_shape : ',image.shape)                    # N,k,100,3,H,W
+        # print('image_shape : ',image.shape)                    # N,k,100,3,H,W
         inp = torch.cat([image[:,:,0], image[:,:,-1]], dim=2) # N,k,6,H,W
         # print(inp.shape)
         inp = inp.view(N * k,6,H,W)
