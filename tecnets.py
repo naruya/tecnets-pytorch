@@ -24,7 +24,7 @@ class TecNets(MetaLearner):
 
         # import ipdb; ipdb.set_trace()
         sentence = self.emb_net(inp.view(N * k,6,H,W)).view(N,k,20)     # N,k,20
-        print(sentence)
+        # print(sentence)
         if normalize:
             sentence = sentence.mean(1) # N,20
             sentence = sentence / torch.norm(sentence, 1)
