@@ -22,12 +22,11 @@ for index in range(3):
     
     actions, states = [], []  # len(query + support), xx
     images = []
-    
 
     for sample_index in support_query_sample_index:
-        demo_path = self.task_info_paths[index][:-4] + f'/cond{sample_index + 6}*/*'
+        demo_path = task_info_paths[index][:-4] + f'/cond{sample_index + 6}*/*'
         demo_paths = glob.glob(demo_path)
-        image = self._get_gif(demo_paths)
+        image = _get_gif(demo_paths)
         # print(type(image))
         image = torch.stack(image)  # list to tensors.
         images.append(image)  # list of tensors
