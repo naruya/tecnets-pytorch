@@ -183,7 +183,7 @@ class TecNets(MetaLearner):
                     self.opt.step()
 
                 loss = loss_emb + loss_ctr_U + loss_ctr_q
-                loss_emb_list.append(loss_emb.tiem())
+                loss_emb_list.append(loss_emb.item())
                 loss_ctr_U_list.append(loss_ctr_U.item())
                 loss_ctr_q_list.append(loss_ctr_q.item())
                 loss_list.append(loss.item())
