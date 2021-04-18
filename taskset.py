@@ -27,11 +27,11 @@ class MILTaskset(Taskset):
         # gif & pkl for all tasks
         gif_dirs = natsorted(glob.glob(os.path.join(demo_dir, "test/task_*")))
         pkl_files = natsorted(glob.glob(os.path.join(demo_dir, "test/*.pkl")))
-        print(len(gif_dirs),len(gif_dirs)%num_batch_tasks)
-        self.n_tasks = len(gif_dirs) - len(gif_dirs)%num_batch_tasks
+        # print(len(gif_dirs),len(gif_dirs)%num_batch_tasks)
+        # self.n_tasks = len(gif_dirs) - len(gif_dirs)%num_batch_tasks
 
-        print(len(gif_dirs), len(pkl_files))
-        print("n_tasks:", self.n_tasks)
+        # print(len(gif_dirs), len(pkl_files))
+        # print("n_tasks:", self.n_tasks)
 
         gif_dirs = gif_dirs[:self.n_tasks]
         pkl_files = pkl_files[:self.n_tasks]
