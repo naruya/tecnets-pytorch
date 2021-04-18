@@ -24,8 +24,8 @@ class MetaLearner(object):
 
         self.emb_net = EmbeddingNet().to(device)
         self.ctr_net = ControlNet().to(device)
-        self.emb_net = torch.nn.DataParallel(self.emb_net, device_ids=[0])
-        self.ctr_net = torch.nn.DataParallel(self.ctr_net, device_ids=[0])
+        self.emb_net = torch.nn.parallel.DistributedDataParallel(self.emb_net, device_ids=[0])
+        self.ctr_net = torch.nn.parallel.DistributedDataParallel(self.ctr_net, device_ids=[0])
 
         params = list(self.emb_net.parameters()) + list(self.ctr_net.parameters())
 
