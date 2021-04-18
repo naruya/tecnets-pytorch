@@ -7,7 +7,7 @@ from PIL import Image
 import pickle 
 
 class Tecnetsdataset(Dataset):
-    def __init__(self, demo_dir='/root/datasets/mil_sim_push/', train=True):
+    def __init__(self, demo_dir='./datasets/mil_sim_push/', train=True):
         # select the gif folder. 
         if train:
             task_paths = f'{demo_dir}train/task_*.pkl'
@@ -50,7 +50,7 @@ class Tecnetsdataset(Dataset):
             state = data['states'][sample_index]
             states.append(torch.from_numpy(state.astype(np.float32)).clone())
 
-        language_path = '/root/datasets/2021_instructions/' + data['demo_selection'].split('/')[-1][:-4] + '.npy'
+        language_path = './datasets/2021_instructions/' + data['demo_selection'].split('/')[-1][:-4] + '.npy'
         language = np.load(language_path)
 
         # print(language.shape)
