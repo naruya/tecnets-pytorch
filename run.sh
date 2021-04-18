@@ -1,1 +1,1 @@
-python meta_train.py 
+CUDA_VISIBLE_DEVICES=0 python meta_train.py 

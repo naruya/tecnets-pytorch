@@ -41,7 +41,7 @@ class TecNets(MetaLearner):
             query_sentence_list,
             support_sentence_list,
             U_si_list):
-        print(len(query_sentence_list))
+        # print(len(query_sentence_list))
         query_sentence = torch.stack(query_sentence_list)  # 4032, 20
         support_sentence = torch.stack(support_sentence_list)  # 4032, 20
         U_si = torch.stack(U_si_list)  # 4032, 20
