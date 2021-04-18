@@ -21,7 +21,7 @@ if __name__ == '__main__':
     parser.add_argument('--demo_dir', type=str, default='/root/datasets/mil_sim_push/')
     parser.add_argument('--state_path', type=str, default="scale_and_bias_sim_push.pkl")
     parser.add_argument('--num_batch_tasks', type=int, default=32)
-    parser.add_argument('--num_load_tasks', type=int, default=32)
+    parser.add_argument('--num_load_tasks', type=int, default=8)
     parser.add_argument('--train_n_shot', type=int, default=1)
     parser.add_argument('--test_n_shot', type=int, default=1)
     parser.add_argument('--lr', type=float, default=0.0005)
@@ -74,13 +74,13 @@ if __name__ == '__main__':
     train_task_loader = DataLoader(Tecnetsdataset(demo_dir=args.demo_dir),
                                    batch_size=args.num_load_tasks, 
                                    shuffle=True,
-                                   num_workers=16, 
+                                   num_workers=4, 
                                    pin_memory=True,
                                    drop_last=True)
     valid_task_loader = DataLoader(Tecnetsdataset(demo_dir=args.demo_dir),
                                    batch_size=args.num_load_tasks, 
                                    shuffle=True,
-                                   num_workers=16, 
+                                   num_workers=4, 
                                    pin_memory=True,
                                    drop_last=True)
 
