@@ -77,8 +77,8 @@ class Tecnetsdataset(Dataset):
         
         # print('images_shape : ', images.shape)  # torch.Size([6, 100, 125,
         # 125, 3])
-       print(images.device)
-       print(actions.device)
+        print(images.device)
+        print(actions.device)
         # print("states: ", states.device)
         # print('langauge_shape : ', language.shape)  # torch.Size([1, 128])
         support_actions, query_actions = actions.split(
