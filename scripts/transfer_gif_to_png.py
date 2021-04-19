@@ -16,7 +16,7 @@ def test(param):
             demo_path = task_info_paths[index][:-4] + f'/cond{sample_index + 6}*/*.gif'
             demo_paths = glob.glob(demo_path)
             # _get_gif
-            # print(demo_paths[0])
+            print(demo_paths[0])
             for demo in demo_paths:
                 Image.open(demo).convert('RGB').save(demo[:-4] + ".jpg")
 
@@ -24,7 +24,7 @@ def test(param):
 if __name__ == '__main__':
     start_t = datetime.datetime.now()
     num_cores = int(mp.cpu_count())
-    print("本地计算机有: " + str(num_cores) + " 核心")
+    print("Local multi cpu : " + str(num_cores) + "cores")
     pool = mp.Pool(num_cores)
     param_dict = {'task1': list(range(0, 100)),
                   'task2': list(range(100, 200)),
@@ -38,4 +38,4 @@ if __name__ == '__main__':
     
     end_t = datetime.datetime.now()
     elapsed_sec = (end_t - start_t).total_seconds()
-    print("多进程计算 共消耗: " + "{:.2f}".format(elapsed_sec) + " 秒")
+    print("Total cost time: " + "{:.2f}".format(elapsed_sec) + " sec")
