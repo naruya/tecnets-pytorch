@@ -24,19 +24,19 @@ def test(name, param):
             data = pickle.load(f)
         if index == 0: print(data)
         path_ = pickle_file.split('/')
-        output_name = '/'.join(path_[:-1]) + 'task_info' + path_[-1][4:]
+        output_name = '/'.join(path_[:-1]) + '/task_info' + path_[-1][4:]
         print(output_name)
 
         action = data['actions']
         #actions.append(action)
         actions = []
         actions.append(torch.from_numpy(action.astype(np.float32)))
-        print(type(action), action.shape)
+        print(type(actions), actions.shape)
 
         state = data['states']
         states = []
         states.append(torch.from_numpy(state.astype(np.float32)))
-        print(type(state), state.shape)
+        print(type(states), states.shape)
 
         language_path = './datasets/2021_instructions/' + \
             data['demo_selection'].split('/')[-1][:-4] + '.npy'
