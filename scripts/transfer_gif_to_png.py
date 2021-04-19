@@ -10,7 +10,7 @@ task_paths = f'{demo_dir}train/task_*.pkl'
 task_info_paths = glob.glob(task_paths)
 
 
-def test(param):
+def test(name, param):
     for index in param:
         for sample_index in range(12):
             demo_path = task_info_paths[index][:-4] + f'/cond{sample_index + 6}*/*.gif'
@@ -34,7 +34,7 @@ if __name__ == '__main__':
                   'task6': list(range(500, 600)),
                   'task8': list(range(600, 700))}
     results = [pool.apply_async(test, args=(name, param)) for name, param in param_dict.items()]
-    # results = [p.get() for p in results]    
+    results = [p.get() for p in results]    
     
     end_t = datetime.datetime.now()
     elapsed_sec = (end_t - start_t).total_seconds()
