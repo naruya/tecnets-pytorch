@@ -67,13 +67,16 @@ class TecNets(MetaLearner):
         N = num_load_tasks  # e.g. 16
         loss_emb_list, loss_ctr_U_list, loss_ctr_q_list, loss_list = [], [], [], []
 
+        def trace_handler(prof):
+            print(prof.key_averages().table(sort_by="self_cuda_time_total", row_limit=-1))
+
         with torch.profiler.profile(
             schedule=torch.profiler.schedule(
                 wait=2,
                 warmup=2,
                 active=6,
                 repeat=1),
-            on_trace_ready=tensorboard_trace_handler("./logs"),
+            on_trace_ready=trace_handler,
             with_trace=True
         ) as profiler:
             # N tasks  *  (n_tasks/N)iter # e.g. 16task  *  44iter
