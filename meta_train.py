@@ -40,7 +40,7 @@ if __name__ == '__main__':
     device = "cuda"
 
     assert args.num_batch_tasks % args.num_load_tasks == 0, ""
-    dist.init_process_group("nccl", rank=0, world_size=4)
+    # dist.init_process_group("nccl", rank=0, world_size=4)
     # _cmd = "git rev-parse --short HEAD"
     # commit = subprocess.check_output(_cmd.split()).strip().decode('utf-8')
 
@@ -77,13 +77,13 @@ if __name__ == '__main__':
     train_task_loader = DataLoader(Tecnetsdataset(demo_dir=args.demo_dir),
                                    batch_size=args.num_load_tasks,
                                    shuffle=True,
-                                   num_workers=os.cpu_count()//4,
+                                   num_workers=os.cpu_count(),
                                    pin_memory=True,
                                    drop_last=True)
     valid_task_loader = DataLoader(Tecnetsdataset(demo_dir=args.demo_dir),
                                    batch_size=args.num_load_tasks,
                                    shuffle=True,
-                                   num_workers=os.cpu_count()//4,
+                                   num_workers=os.cpu_count(),
                                    pin_memory=True,
                                    drop_last=True)
     
