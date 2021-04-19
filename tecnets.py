@@ -73,7 +73,7 @@ class TecNets(MetaLearner):
                 warmup=2,
                 active=6,
                 repeat=1),
-            on_trace_ready=tensorboard_trace_handler,
+            on_trace_ready=tensorboard_trace_handler("./logs"),
             with_trace=True
         ) as profiler:
             # N tasks  *  (n_tasks/N)iter # e.g. 16task  *  44iter
