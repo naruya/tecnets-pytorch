@@ -117,7 +117,7 @@ class TecNets(MetaLearner):
             support_action = support_action.view(
                 N * support_num * 100,
                 7).to(device)           # N * support_num * 100,7
-
+            print(support_action.device)
             query_image = query_image.view(
                 N * query_num * 100, 3, size, size).to(device)  # N * query_num * 100,C,H,W
             query_state = query_state.view(
