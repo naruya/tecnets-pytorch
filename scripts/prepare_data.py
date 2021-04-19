@@ -49,7 +49,7 @@ def test():
             for demo in demo_paths:
                 x = Image.open(demo)
                 x = x.convert('RGB')
-#                x.save(demo[:-4] + ".png")
+                x.save(demo[:-4] + ".jpg")
                 x = torch.from_numpy(np.array(x))
                 image.append(x)
             # print(type(image))
