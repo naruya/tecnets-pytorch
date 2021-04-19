@@ -76,7 +76,7 @@ class TecNets(MetaLearner):
                 warmup=2,
                 active=6,
                 repeat=1),
-            on_trace_ready=trace_handler
+            on_trace_ready=torch.profiler.tensorboard_trace_handler("./logs")
         ) as profiler:
             # N tasks  *  (n_tasks/N)iter # e.g. 16task  *  44iter
             for i, tasks in enumerate(tqdm(task_loader)):
