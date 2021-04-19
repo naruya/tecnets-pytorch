@@ -27,8 +27,8 @@ class MetaLearner(object):
         # print("self.emb_net: ", self.emb_net.device)
         # self.emb_net = torch.nn.DataParallel(self.emb_net, device_ids=[0, 1, 2, 3])
         # self.ctr_net = torch.nn.DataParallel(self.ctr_net, device_ids=[0, 1, 2, 3])
-        self.emb_net = torch.nn.parallel.DistributedDataParallel(self.emb_net, device_ids=[0, 1, 2, 3])
-        self.ctr_net = torch.nn.parallel.DistributedDataParallel(self.ctr_net, device_ids=[0, 1, 2, 3])
+        self.emb_net = torch.nn.parallel.DistributedDataParallel(self.emb_net, device_ids=[0])
+        self.ctr_net = torch.nn.parallel.DistributedDataParallel(self.ctr_net, device_ids=[0])
 
         params = list(self.emb_net.parameters()) + list(self.ctr_net.parameters())
 

@@ -12,6 +12,9 @@ from tensorboardX import SummaryWriter
 from taskset import MILTaskset
 from tecnetsdataset import Tecnetsdataset 
 from torch.utils.data import DataLoader
+import torch.distributed as dist
+import torch.multiprocessing as mp
+
 from tecnets import TecNets
 
 
@@ -72,15 +75,15 @@ if __name__ == '__main__':
 
     # for memory saving, for convenience, task_batch_size=1 (See tecnets*.py meta_train)
     train_task_loader = DataLoader(Tecnetsdataset(demo_dir=args.demo_dir),
-                                   batch_size=args.num_load_tasks, 
+                                   batch_size=args.num_load_tasks,
                                    shuffle=True,
-                                   num_workers=os.cpu_count(), 
+                                   num_workers=os.cpu_count()//4,
                                    pin_memory=True,
                                    drop_last=True)
     valid_task_loader = DataLoader(Tecnetsdataset(demo_dir=args.demo_dir),
-                                   batch_size=args.num_load_tasks, 
+                                   batch_size=args.num_load_tasks,
                                    shuffle=True,
-                                   num_workers=os.cpu_count(), 
+                                   num_workers=os.cpu_count()//4,
                                    pin_memory=True,
                                    drop_last=True)
     
