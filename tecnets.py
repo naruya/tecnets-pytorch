@@ -238,7 +238,7 @@ class TecNets(MetaLearner):
                 num_batch_tasks,
                 num_load_tasks,
                 epoch,
-                False)
+                train=False)
 
     def make_test_sentence(self, demo_path, emb_net):
         inp = vread(demo_path)
