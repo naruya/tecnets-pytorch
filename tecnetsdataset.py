@@ -49,10 +49,10 @@ class Tecnetsdataset(Dataset):
             images.append(image)  # list of tensors
 
             action = data['actions'][sample_index]
-            actions.append(torch.from_numpy(action.astype(np.float32)).clone())
+            actions.append(torch.from_numpy(action.astype(np.float32)))
 
             state = data['states'][sample_index]
-            states.append(torch.from_numpy(state.astype(np.float32)).clone())
+            states.append(torch.from_numpy(state.astype(np.float32)))
 
         images = torch.stack(images)
         actions = torch.stack((actions))
