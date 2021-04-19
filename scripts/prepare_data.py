@@ -26,14 +26,18 @@ def test(name, param):
         action = data['actions']
         print(type(action), action.shape)
         #actions.append(action)
+        actions = []
+        actions.append(torch.from_numpy(action.astype(np.float32)))
 
         state = data['states']
         print(type(state), state.shape)
-        # states.append(torch.from_numpy(state.astype(np.float32)).clone())
+        states = []
+        states.append(torch.from_numpy(state.astype(np.float32)))
 
         language_path = './datasets/2021_instructions/' + \
             data['demo_selection'].split('/')[-1][:-4] + '.npy'
         language = np.load(language_path)
+        language = torch.from_numpy(language.astype(np.float32))
 
         print(type(language), language.shape)
         # task_info = {
@@ -55,7 +59,7 @@ if __name__ == '__main__':
         param_dict[f"task{i}"] = list(range(i * n_step, (i+1) * n_step))
 
     results = [pool.apply_async(test, args=(name, param)) for name, param in param_dict.items()]
-    results = [p.get() for p in results]    
+    results = [p.get() for p in tqdm(results)]    
     
     end_t = datetime.datetime.now()
     elapsed_sec = (end_t - start_t).total_seconds()
