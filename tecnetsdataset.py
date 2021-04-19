@@ -51,6 +51,7 @@ class Tecnetsdataset(Dataset):
             state = data['states'][sample_index]
             states.append(torch.from_numpy(state.astype(np.float32)).clone())
 
+        import ipdb; ipdb.set_trace()
         images = torch.stack(images)
         actions = torch.stack((actions))
         states = torch.stack(states)

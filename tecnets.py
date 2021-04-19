@@ -70,129 +70,129 @@ class TecNets(MetaLearner):
         # def trace_handler(prof):
         #     print(prof.key_averages().table(sort_by="self_cuda_time_total", row_limit=-1))
 
-        with torch.profiler.profile(
-            profile_memory=True, record_shapes=True
-        ) as prof:
+        # with torch.profiler.profile(
+        #     profile_memory=True, record_shapes=True
+        # ) as prof:
             # N tasks  *  (n_tasks/N)iter # e.g. 16task  *  44iter
-            for i, tasks in enumerate(tqdm(task_loader)):
+        for i, tasks in enumerate(tqdm(task_loader)):
 
-                if (i * N) % B == 0:
-                    if train:
-                        self.opt.zero_grad()
-                    loss_emb, loss_ctr_U, loss_ctr_q = 0, 0, 0
-                    support_sentence_list, query_sentence_list = [], []
+            if (i * N) % B == 0:
+                if train:
+                    self.opt.zero_grad()
+                loss_emb, loss_ctr_U, loss_ctr_q = 0, 0, 0
+                support_sentence_list, query_sentence_list = [], []
 
-                # N,support_num,100,3,125,125
-                support_image = tasks["support_images"]
-                support_state = tasks["support_states"]   # N,support_num,100,20
-                support_action = tasks["support_actions"]  # N,support_num,100,7
-                # len(support), 1, 128.
-                support_language = tasks['support_instructions']
+            # N,support_num,100,3,125,125
+            support_image = tasks["support_images"]
+            support_state = tasks["support_states"]   # N,support_num,100,20
+            support_action = tasks["support_actions"]  # N,support_num,100,7
+            # len(support), 1, 128.
+            support_instruction = tasks['support_instructions']
 
-                query_image = tasks["query_images"]  # N,query_num,100,3,125,125
-                query_state = tasks["query_states"]    # N,query_num,100,20
-                query_action = tasks["query_actions"]  # N,query_num,100,7
-                query_language = tasks['query_instructions']  # # len(query), 1, 128.
+            query_image = tasks["query_images"]  # N,query_num,100,3,125,125
+            query_state = tasks["query_states"]    # N,query_num,100,20
+            query_action = tasks["query_actions"]  # N,query_num,100,7
+            query_instruction = tasks['query_instructions']  # # len(query), 1, 128.
 
-                support_num, query_num = len(support_image[1]), len(query_image[1])
-                size = support_image.shape[4]  # 125 or 64
+            support_num, query_num = len(support_image[1]), len(query_image[1])
+            size = support_image.shape[4]  # 125 or 64
 
-                support_sentence = self.make_sentence(
-                    support_image, normalize=True)  # N,20
-                query_sentence = self.make_sentence(
-                    query_image, normalize=True)  # N,20
+            support_sentence = self.make_sentence(
+                support_image, normalize=True)  # N,20
+            query_sentence = self.make_sentence(
+                query_image, normalize=True)  # N,20
 
-                support_sentence_list.append(support_sentence)
-                query_sentence_list.append(query_sentence)
+            support_sentence_list.append(support_sentence)
+            query_sentence_list.append(query_sentence)
 
-                # ---- calc loss_ctr ----
-                support_image = support_image.view(
-                    N * support_num * 100, 3, size, size).to(device)  # N * support_num * 100,C,H,W
-                support_state = support_state.view(
-                    N * support_num * 100,
-                    20).to(device)            # N * support_num * 100,20
-                support_action = support_action.view(
-                    N * support_num * 100,
-                    7).to(device)           # N * support_num * 100,7
+            # ---- calc loss_ctr ----
+            support_image = support_image.view(
+                N * support_num * 100, 3, size, size).to(device)  # N * support_num * 100,C,H,W
+            support_state = support_state.view(
+                N * support_num * 100,
+                20).to(device)            # N * support_num * 100,20
+            support_action = support_action.view(
+                N * support_num * 100,
+                7).to(device)           # N * support_num * 100,7
 
-                query_image = query_image.view(
-                    N * query_num * 100, 3, size, size).to(device)  # N * query_num * 100,C,H,W
-                query_state = query_state.view(
-                    N * query_num * 100,
-                    20).to(device)            # N * query_num * 100,20
-                query_action = query_action.view(
-                    N * query_num * 100,
-                    7).to(device)           # N * query_num * 100,7
-                support_sentence_U_inp = support_sentence.repeat_interleave(
-                    100 * support_num, dim=0)        # N * support_num * 100,20
-                support_sentence_q_inp = support_sentence.repeat_interleave(
-                    100 * query_num, dim=0)        # N * query_num * 100,20
+            query_image = query_image.view(
+                N * query_num * 100, 3, size, size).to(device)  # N * query_num * 100,C,H,W
+            query_state = query_state.view(
+                N * query_num * 100,
+                20).to(device)            # N * query_num * 100,20
+            query_action = query_action.view(
+                N * query_num * 100,
+                7).to(device)           # N * query_num * 100,7
+            support_sentence_U_inp = support_sentence.repeat_interleave(
+                100 * support_num, dim=0)        # N * support_num * 100,20
+            support_sentence_q_inp = support_sentence.repeat_interleave(
+                100 * query_num, dim=0)        # N * query_num * 100,20
 
-                U_out = self.ctr_net(
-                    support_image,
-                    support_sentence_U_inp,
-                    support_state)
-                _loss_ctr_U = self.loss_fn(
-                    U_out, support_action) * len(support_image) * 0.1
+            U_out = self.ctr_net(
+                support_image,
+                support_sentence_U_inp,
+                support_state)
+            _loss_ctr_U = self.loss_fn(
+                U_out, support_action) * len(support_image) * 0.1
 
-                # import ipdb; ipdb.set_trace()
+            # import ipdb; ipdb.set_trace()
+
+            if train:
+                _loss_ctr_U.backward(retain_graph=True)  # memory saving
+            loss_ctr_U += _loss_ctr_U.item()
+
+            q_out = self.ctr_net(
+                query_image,
+                support_sentence_q_inp,
+                query_state)
+            _loss_ctr_q = self.loss_fn(
+                q_out, query_action) * len(query_image) * 0.1
+
+            if train:
+                _loss_ctr_q.backward(retain_graph=True)  # memory saving
+            loss_ctr_q += _loss_ctr_q.item()
+            # ----
+
+            if ((i + 1) * N) % B == 0:
+
+                # don't convert into list. graph informations will be lost.
+                # (and an error will occur)
+                support_sentence_list = torch.cat(
+                    support_sentence_list, 0)  # N * (B/N),20 -> N,20
+                query_sentence_list = torch.cat(
+                    query_sentence_list, 0)  # N * (B/N),20 -> N,20
+
+                query_sentence_j_list, support_sentence_j_list, U_si_list = [], [], []
+
+                # ---- calc loss_emb ----
+                for jdx, (query_sentence_j, support_sentence_j) in enumerate(
+                        zip(query_sentence_list, support_sentence_list)):
+                    for idx, U_si in enumerate(support_sentence_list):
+                        if jdx == idx:
+                            continue
+                        query_sentence_j_list.append(query_sentence_j)
+                        support_sentence_j_list.append(support_sentence_j)
+                        U_si_list.append(U_si)
+
+                _loss_emb = torch.sum(
+                    self.cos_hinge_loss(
+                        query_sentence_j_list,
+                        support_sentence_j_list,
+                        U_si_list)) * 1.0
 
                 if train:
-                    _loss_ctr_U.backward(retain_graph=True)  # memory saving
-                loss_ctr_U += _loss_ctr_U.item()
-
-                q_out = self.ctr_net(
-                    query_image,
-                    support_sentence_q_inp,
-                    query_state)
-                _loss_ctr_q = self.loss_fn(
-                    q_out, query_action) * len(query_image) * 0.1
-
-                if train:
-                    _loss_ctr_q.backward(retain_graph=True)  # memory saving
-                loss_ctr_q += _loss_ctr_q.item()
+                    _loss_emb.backward()
+                loss_emb = _loss_emb.item()
                 # ----
 
-                if ((i + 1) * N) % B == 0:
+                if train:
+                    self.opt.step()
 
-                    # don't convert into list. graph informations will be lost.
-                    # (and an error will occur)
-                    support_sentence_list = torch.cat(
-                        support_sentence_list, 0)  # N * (B/N),20 -> N,20
-                    query_sentence_list = torch.cat(
-                        query_sentence_list, 0)  # N * (B/N),20 -> N,20
-
-                    query_sentence_j_list, support_sentence_j_list, U_si_list = [], [], []
-
-                    # ---- calc loss_emb ----
-                    for jdx, (query_sentence_j, support_sentence_j) in enumerate(
-                            zip(query_sentence_list, support_sentence_list)):
-                        for idx, U_si in enumerate(support_sentence_list):
-                            if jdx == idx:
-                                continue
-                            query_sentence_j_list.append(query_sentence_j)
-                            support_sentence_j_list.append(support_sentence_j)
-                            U_si_list.append(U_si)
-
-                    _loss_emb = torch.sum(
-                        self.cos_hinge_loss(
-                            query_sentence_j_list,
-                            support_sentence_j_list,
-                            U_si_list)) * 1.0
-
-                    if train:
-                        _loss_emb.backward()
-                    loss_emb = _loss_emb.item()
-                    # ----
-
-                    if train:
-                        self.opt.step()
-
-                    loss = loss_emb + loss_ctr_U + loss_ctr_q
-                    loss_emb_list.append(loss_emb)
-                    loss_ctr_U_list.append(loss_ctr_U)
-                    loss_ctr_q_list.append(loss_ctr_q)
-                    loss_list.append(loss)
+                loss = loss_emb + loss_ctr_U + loss_ctr_q
+                loss_emb_list.append(loss_emb)
+                loss_ctr_U_list.append(loss_ctr_U)
+                loss_ctr_q_list.append(loss_ctr_q)
+                loss_list.append(loss)
 #                    print(prof.key_averages().table(sort_by="self_cpu_memory_usage", row_limit=10))
 #            print(prof.key_averages().table(sort_by="self_cpu_memory_usage", row_limit=10))
 
