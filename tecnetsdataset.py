@@ -97,6 +97,7 @@ class Tecnetsdataset(Dataset):
             'query_images': ((query_images.permute(0, 1, 4, 2, 3) - 127.5) / 127.5),
             'query_instructions': instructions,  # len(query), 1, 128.
         }
+        print("task_info is_cude? :", task_info.is_cuda)
         return task_info
 
     # def _get_gif(self, demo_paths):
