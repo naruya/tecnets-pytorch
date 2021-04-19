@@ -20,7 +20,9 @@ def test(name, param):
         if index >= len(task_info_paths): continue
         # print(index)
         pickle_file = task_info_paths[index]
-        if len(pickle_file) > len("/root/datasets/mil_sim_push/train/task_info_4.pkl"): print(pickle_file)
+        if len(pickle_file) > len("/root/datasets/mil_sim_push/train/task_info_4.pkl"): 
+            file = pathlib.Path(pickle_file)
+            file.unlink(missing_ok=False)
 #         with open(pickle_file, 'rb') as f:
 #             data = pickle.load(f)
 #         if index == 0: print(data)
