@@ -84,13 +84,13 @@ class TecNets(MetaLearner):
                 support_sentence_list, query_sentence_list = [], []
 
             # N,support_num,100,3,125,125
-            support_image = tasks["support_images"]
+            support_image = tasks["support_images"].to(device)
             support_state = tasks["support_states"]   # N,support_num,100,20
             support_action = tasks["support_actions"]  # N,support_num,100,7
             # len(support), 1, 128.
             support_instruction = tasks['support_instructions']
 
-            query_image = tasks["query_images"]  # N,query_num,100,3,125,125
+            query_image = tasks["query_images"].to(device)  # N,query_num,100,3,125,125
             query_state = tasks["query_states"]    # N,query_num,100,20
             query_action = tasks["query_actions"]  # N,query_num,100,7
             query_instruction = tasks['query_instructions']  # # len(query), 1, 128.
