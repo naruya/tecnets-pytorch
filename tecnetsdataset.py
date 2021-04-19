@@ -54,10 +54,10 @@ class Tecnetsdataset(Dataset):
             state = data['states'][sample_index]
             states.append(torch.from_numpy(state.astype(np.float32)))
 
-        images = torch.stack(images)
-        actions = torch.stack((actions))
-        states = torch.stack(states)
-        instructions = torch.from_numpy(np.array(data['instructions']))
+        images = torch.stack(images, device='cuda')
+        actions = torch.stack((actions), device='cuda')
+        states = torch.stack(states, device='cuda')
+        instructions = torch.from_numpy(np.array(data['instructions']), device='cuda')
 
         # print(language.shape)
         # print(np.array(actions).shape)
@@ -99,7 +99,7 @@ class Tecnetsdataset(Dataset):
             'query_images': ((query_images.permute(0, 1, 4, 2, 3) - 127.5) / 127.5),
             'query_instructions': instructions,  # len(query), 1, 128.
         }
-        print("task_info is_cude? :", task_info.is_cuda)
+        # print("task_info is_cude? :", task_info.is_cuda)
         return task_info
 
     # def _get_gif(self, demo_paths):
