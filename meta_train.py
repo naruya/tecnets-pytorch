@@ -74,13 +74,13 @@ if __name__ == '__main__':
     train_task_loader = DataLoader(Tecnetsdataset(demo_dir=args.demo_dir),
                                    batch_size=args.num_load_tasks, 
                                    shuffle=True,
-                                   num_workers=40, 
+                                   num_workers=4, 
                                    pin_memory=True,
                                    drop_last=True)
     valid_task_loader = DataLoader(Tecnetsdataset(demo_dir=args.demo_dir),
                                    batch_size=args.num_load_tasks, 
                                    shuffle=True,
-                                   num_workers=40, 
+                                   num_workers=4, 
                                    pin_memory=True,
                                    drop_last=True)
 
