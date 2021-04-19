@@ -24,11 +24,11 @@ def test():
             data = pickle.load(f)
     # print(data)
 
-        num_sample = num_support + num_query
+        # num_sample = num_support + num_query
         #support_query_sample_index = np.random.choice(12, num_sample, replace=False)   
-        support_query_sample_index = range(12)
-        actions, states = [], []  # len(query + support), xx
-        images = []
+        # support_query_sample_index = range(12)
+        # actions, states = [], []  # len(query + support), xx
+        # images = []
 
         # def _get_gif(demo_paths):
         #     image = []
