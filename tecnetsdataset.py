@@ -16,7 +16,7 @@ class Tecnetsdataset(Dataset):
         else:
             task_paths = f'{demo_dir}test/taskinfo*.pkl'
         self.task_info_paths = glob.glob(task_paths)
-        print(len(self.task_info_paths))
+        # print(len(self.task_info_paths))
 
     def __len__(self):
         return len(self.task_info_paths)
@@ -78,7 +78,7 @@ class Tecnetsdataset(Dataset):
         # 125, 3])
 #        print(images.device)
 #        print(actions.device)
-        print("states: ", states.device)
+        # print("states: ", states.device)
         # print('langauge_shape : ', language.shape)  # torch.Size([1, 128])
         support_actions, query_actions = actions.split(
             [num_support, num_query], dim=0)

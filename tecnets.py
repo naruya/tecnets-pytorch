@@ -49,7 +49,7 @@ class TecNets(MetaLearner):
         real = (query_sentence * support_sentence).sum(1)  # 4032,
         fake = (query_sentence * U_si).sum(1)  # 4032,
         zero = torch.zeros(1).to(self.device)  # 1,
-        print("zero: ", zero.device)
+        # print("zero: ", zero.device)
         loss = torch.max(0.1 - real + fake, zero)  # 4032,
         return loss
 
