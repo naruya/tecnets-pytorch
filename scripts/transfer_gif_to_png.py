@@ -26,13 +26,23 @@ if __name__ == '__main__':
     num_cores = int(mp.cpu_count())
     print("Local multi cpu : " + str(num_cores) + "cores")
     pool = mp.Pool(num_cores)
-    param_dict = {'task1': list(range(0, 100)),
-                  'task2': list(range(100, 200)),
-                  'task3': list(range(200, 300)),
-                  'task4': list(range(300, 400)),
-                  'task5': list(range(400, 500)),
-                  'task6': list(range(500, 600)),
-                  'task8': list(range(600, 700))}
+    param_dict = {'task1': list(range(0, 50)),
+                  'task2': list(range(50, 100)),
+                  'task3': list(range(100, 150)),
+                  'task4': list(range(150, 200)),
+                  'task5': list(range(200, 250)),
+                  'task6': list(range(250, 300)),
+                  'task8': list(range(300, 350)),
+                  'task9': list(range(350, 400)),
+                  'task10': list(range(400, 450)),
+                  'task11': list(range(450, 500)),
+                  'task12': list(range(500, 550)),
+                  'task13': list(range(400, 500)),
+                  'task14': list(range(500, 550)),
+                  'task15': list(range(550, 600)),
+                  'task16': list(range(600, 650)),
+                  'task17': list(range(650, 700)),
+                  'task18': list(range(700, 750))}
     results = [pool.apply_async(test, args=(name, param)) for name, param in param_dict.items()]
     results = [p.get() for p in results]    
     
