@@ -17,7 +17,7 @@ num_query = 1
 @profile
 def test():
 # print(task_info_paths)
-    for index in range(3):
+    for index in range(30):
         pickle_file = task_info_paths[index]
         with open(pickle_file, 'rb') as f:
             data = pickle.load(f)
@@ -86,5 +86,5 @@ def test():
                 'query_languages': language,  # len(query), 1, 128.
             }
 
-        print(task_info)
+        # print(task_info)
 test()
