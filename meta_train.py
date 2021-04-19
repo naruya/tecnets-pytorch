@@ -83,6 +83,8 @@ if __name__ == '__main__':
                                    num_workers=os.cpu_count(), 
                                    pin_memory=True,
                                    drop_last=True)
+    
+    torch.backends.cudnn.benchmark = True
 
     meta_epochs = 400000 # 400000/11
 
