@@ -5,6 +5,7 @@ from torch.utils.data import Dataset
 from skimage import data, io
 from PIL import Image
 import pickle
+import re
 
 
 class Tecnetsdataset(Dataset):
@@ -15,6 +16,7 @@ class Tecnetsdataset(Dataset):
         else:
             task_paths = f'{demo_dir}test/taskinfo*.pkl'
         self.task_info_paths = glob.glob(task_paths)
+        print(len(self.task_info_paths))
 
     def __len__(self):
         return len(self.task_info_paths)
@@ -35,13 +37,14 @@ class Tecnetsdataset(Dataset):
         actions = []
         states = [] 
         images = []
-        
         for sample_index in support_query_sample_index:
-            demo_path = self.task_info_paths[index][:-4] + f'/cond{sample_index + 6}*/*.jpg' # 12 demos.
+            # print(self.task_info_paths[index])
+            pickle_file
+            demo_folder = re.sub('info', '', pickle_file)
+            demo_path = demo_folder[:-4] + f'/cond{sample_index + 6}*/*.jpg' # 12 demos.
             demo_paths = glob.glob(demo_path)
-
+            # print(demo_paths)
             image = [torch.from_numpy(np.array(Image.open(demo))) for demo in demo_paths]
-            # print(type(image))
             image = torch.stack(image)  # list to tensors.
             images.append(image)  # list of tensors
 
@@ -51,7 +54,6 @@ class Tecnetsdataset(Dataset):
             state = data['states'][sample_index]
             states.append(torch.from_numpy(state.astype(np.float32)).clone())
 
-        import ipdb; ipdb.set_trace()
         images = torch.stack(images)
         actions = torch.stack((actions))
         states = torch.stack(states)
