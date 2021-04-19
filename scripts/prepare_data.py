@@ -7,6 +7,7 @@ from PIL import Image
 import pickle
 import time
 
+
 demo_dir='/root/datasets/mil_sim_push/'
 task_paths = f'{demo_dir}train/task_*.pkl'
 task_info_paths = glob.glob(task_paths)
@@ -14,7 +15,7 @@ task_info_paths = glob.glob(task_paths)
 num_support = 5
 num_query = 1
 
-@profile
+#@profile
 def test():
 # print(task_info_paths)
     for index in range(30):
@@ -24,8 +25,8 @@ def test():
     # print(data)
 
         num_sample = num_support + num_query
-        support_query_sample_index = np.random.choice(12, num_sample, replace=False)   
-        
+        #support_query_sample_index = np.random.choice(12, num_sample, replace=False)   
+        support_query_sample_index = range(12)
         actions, states = [], []  # len(query + support), xx
         images = []
 
@@ -40,14 +41,16 @@ def test():
 
 
         for sample_index in support_query_sample_index:
-            demo_path = task_info_paths[index][:-4] + f'/cond{sample_index + 6}*/*'
+            demo_path = task_info_paths[index][:-4] + f'/cond{sample_index + 6}*/*.gif'
             demo_paths = glob.glob(demo_path)
             # _get_gif
             image = []
+#            print(demo_paths[0])
             for demo in demo_paths:
-                x = Image.open(demo).convert('RGB')
-                x = np.array(x)
-                x = torch.from_numpy(x.astype(np.float32)).clone()
+                x = Image.open(demo)
+                x = x.convert('RGB')
+                x.save(demo[:-4] + ".png")
+                x = torch.from_numpy(np.array(x))
                 image.append(x)
             # print(type(image))
             image = torch.stack(image)  # list to tensors.
