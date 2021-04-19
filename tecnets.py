@@ -85,15 +85,15 @@ class TecNets(MetaLearner):
 
             # N,support_num,100,3,125,125
             support_image = tasks["support_images"].to(device)
-            support_state = tasks["support_states"]   # N,support_num,100,20
-            support_action = tasks["support_actions"]  # N,support_num,100,7
+            support_state = tasks["support_states"].to(device)  # N,support_num,100,20
+            support_action = tasks["support_actions"].to(device)  # N,support_num,100,7
             # len(support), 1, 128.
-            support_instruction = tasks['support_instructions']
+            support_instruction = tasks['support_instructions'].to(device)
 
             query_image = tasks["query_images"].to(device)  # N,query_num,100,3,125,125
-            query_state = tasks["query_states"]    # N,query_num,100,20
-            query_action = tasks["query_actions"]  # N,query_num,100,7
-            query_instruction = tasks['query_instructions']  # # len(query), 1, 128.
+            query_state = tasks["query_states"].to(device)    # N,query_num,100,20
+            query_action = tasks["query_actions"].to(device)  # N,query_num,100,7
+            query_instruction = tasks['query_instructions'].to(device)  # # len(query), 1, 128.
 
             support_num, query_num = len(support_image[1]), len(query_image[1])
             size = support_image.shape[4]  # 125 or 64
@@ -110,22 +110,22 @@ class TecNets(MetaLearner):
 
             # ---- calc loss_ctr ----
             support_image = support_image.view(
-                N * support_num * 100, 3, size, size).to(device)  # N * support_num * 100,C,H,W
+                N * support_num * 100, 3, size, size)  # N * support_num * 100,C,H,W
             support_state = support_state.view(
                 N * support_num * 100,
-                20).to(device)            # N * support_num * 100,20
+                20)            # N * support_num * 100,20
             support_action = support_action.view(
                 N * support_num * 100,
-                7).to(device)           # N * support_num * 100,7
+                7)           # N * support_num * 100,7
             print(support_action.device)
             query_image = query_image.view(
-                N * query_num * 100, 3, size, size).to(device)  # N * query_num * 100,C,H,W
+                N * query_num * 100, 3, size, size)  # N * query_num * 100,C,H,W
             query_state = query_state.view(
                 N * query_num * 100,
-                20).to(device)            # N * query_num * 100,20
+                20)            # N * query_num * 100,20
             query_action = query_action.view(
                 N * query_num * 100,
-                7).to(device)           # N * query_num * 100,7
+                7)           # N * query_num * 100,7
             support_sentence_U_inp = support_sentence.repeat_interleave(
                 100 * support_num, dim=0)        # N * support_num * 100,20
             support_sentence_q_inp = support_sentence.repeat_interleave(
