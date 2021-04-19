@@ -34,7 +34,7 @@ if __name__ == '__main__':
 
     torch.manual_seed(args.seed)
     random.seed(args.seed)
-    # device = "cuda"
+    device = "cuda"
 
     assert args.num_batch_tasks % args.num_load_tasks == 0, ""
 
