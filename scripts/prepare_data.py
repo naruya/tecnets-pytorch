@@ -2,7 +2,7 @@ import torch
 import numpy as np
 import pickle
 import pathlib
-
+import os
 import glob
 import tqdm
 import datetime
@@ -19,10 +19,14 @@ def test(name, param):
     for index in param:
         if index >= len(task_info_paths): continue
         # print(index)
-        pickle_file = task_info_paths[index]
-        if len(pickle_file) > len("/root/datasets/mil_sim_push/train/task_info_4.pkl"): 
-            file = pathlib.Path(pickle_file)
-            file.unlink(missing_ok=False)
+#        pickle_file = task_info_paths[index]
+#        print(pickle_file.split('/')[-1][:9])
+#        if pickle_file.split('/')[-1][:9] == "task_info": os.remove(pickle_file)
+#        if len(pickle_file) > len("/root/datasets/mil_sim_push/train/task_info_4.pkl"): 
+#            print(pickle_file)
+#            os.remove(pickle_file)
+#            file = pathlib.Path(pickle_file)
+#            file.unlink()
 #         with open(pickle_file, 'rb') as f:
 #             data = pickle.load(f)
 #         if index == 0: print(data)
