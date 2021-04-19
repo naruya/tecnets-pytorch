@@ -193,8 +193,8 @@ class TecNets(MetaLearner):
                     loss_ctr_U_list.append(loss_ctr_U)
                     loss_ctr_q_list.append(loss_ctr_q)
                     loss_list.append(loss)
-                    print(prof.key_averages().table(sort_by="self_cpu_memory_usage", row_limit=10))
-            print(prof.key_averages().table(sort_by="self_cpu_memory_usage", row_limit=10))
+#                    print(prof.key_averages().table(sort_by="self_cpu_memory_usage", row_limit=10))
+#            print(prof.key_averages().table(sort_by="self_cpu_memory_usage", row_limit=10))
 
         # -- end all tasks
 

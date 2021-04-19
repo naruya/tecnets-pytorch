@@ -5,7 +5,7 @@ from torch.utils.data import Dataset
 from skimage import data, io
 from PIL import Image
 import pickle
-
+import time
 
 demo_dir='/root/datasets/mil_sim_push/'
 task_paths = f'{demo_dir}train/task_*.pkl'
@@ -14,6 +14,8 @@ task_info_paths = glob.glob(task_paths)
 num_support = 5
 num_query = 1
 
+@profile
+def test():
 # print(task_info_paths)
 for index in range(3):
     pickle_file = task_info_paths[index]
