@@ -46,8 +46,8 @@ def test(name, param):
         print(type(language), language.shape)
         task_info = {
             'demo_selection': data['demo_selection'],
-            'states': state,
-            'actions': action,
+            'states': states,
+            'actions': actions,
             'instructions': language
         }
 
@@ -63,7 +63,7 @@ if __name__ == '__main__':
         param_dict[f"task{i}"] = list(range(i * n_step, (i+1) * n_step))
 
     results = [pool.apply_async(test, args=(name, param)) for name, param in param_dict.items()]
-    results = [p.get() for p in tqdm(results)]    
+    results = [p.get() for p in results]
     
     end_t = datetime.datetime.now()
     elapsed_sec = (end_t - start_t).total_seconds()
