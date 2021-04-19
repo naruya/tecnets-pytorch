@@ -87,12 +87,12 @@ class TecNets(MetaLearner):
                 support_state = tasks["support_states"]   # N,support_num,100,20
                 support_action = tasks["support_actions"]  # N,support_num,100,7
                 # len(support), 1, 128.
-                support_language = tasks['support_languages']
+                support_language = tasks['support_instructions']
 
                 query_image = tasks["query_images"]  # N,query_num,100,3,125,125
                 query_state = tasks["query_states"]    # N,query_num,100,20
                 query_action = tasks["query_actions"]  # N,query_num,100,7
-                query_language = tasks['query_languages']  # # len(query), 1, 128.
+                query_language = tasks['query_instructions']  # # len(query), 1, 128.
 
                 support_num, query_num = len(support_image[1]), len(query_image[1])
                 size = support_image.shape[4]  # 125 or 64
