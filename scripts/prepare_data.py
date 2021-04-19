@@ -29,20 +29,26 @@ def test():
         actions, states = [], []  # len(query + support), xx
         images = []
 
-        def _get_gif(demo_paths):
+        # def _get_gif(demo_paths):
+        #     image = []
+        #     for demo in demo_paths:
+        #         x = Image.open(demo).convert('RGB')
+        #         x = np.array(x)
+        #         x = torch.from_numpy(x.astype(np.float32)).clone()
+        #         image.append(x)
+        #     return image
+
+
+        for sample_index in support_query_sample_index:
+            demo_path = task_info_paths[index][:-4] + f'/cond{sample_index + 6}*/*'
+            demo_paths = glob.glob(demo_path)
+            # _get_gif
             image = []
             for demo in demo_paths:
                 x = Image.open(demo).convert('RGB')
                 x = np.array(x)
                 x = torch.from_numpy(x.astype(np.float32)).clone()
                 image.append(x)
-            return image
-
-
-        for sample_index in support_query_sample_index:
-            demo_path = task_info_paths[index][:-4] + f'/cond{sample_index + 6}*/*'
-            demo_paths = glob.glob(demo_path)
-            image = _get_gif(demo_paths)
             # print(type(image))
             image = torch.stack(image)  # list to tensors.
             images.append(image)  # list of tensors
