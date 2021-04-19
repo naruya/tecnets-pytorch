@@ -1,6 +1,7 @@
 import torch
 import numpy as np
 import pickle
+import pathlib
 
 import glob
 import tqdm
@@ -22,17 +23,20 @@ def test(name, param):
         with open(pickle_file, 'rb') as f:
             data = pickle.load(f)
         if index == 0: print(data)
+        path_ = pickle_file.split('/')
+        output_name = '/'.join(path_[:-1]) + 'task_info' + path_[-1][4:]
+        print(output_name)
 
         action = data['actions']
-        print(type(action), action.shape)
         #actions.append(action)
         actions = []
         actions.append(torch.from_numpy(action.astype(np.float32)))
+        print(type(action), action.shape)
 
         state = data['states']
-        print(type(state), state.shape)
         states = []
         states.append(torch.from_numpy(state.astype(np.float32)))
+        print(type(state), state.shape)
 
         language_path = './datasets/2021_instructions/' + \
             data['demo_selection'].split('/')[-1][:-4] + '.npy'
@@ -40,12 +44,12 @@ def test(name, param):
         language = torch.from_numpy(language.astype(np.float32))
 
         print(type(language), language.shape)
-        # task_info = {
-        #     'demo_selection': data['demo_selection'],
-        #     'states': state,
-        #     'actions': action,
-        #     'instructions': language
-        # }
+        task_info = {
+            'demo_selection': data['demo_selection'],
+            'states': state,
+            'actions': action,
+            'instructions': language
+        }
 
 
 if __name__ == '__main__':
