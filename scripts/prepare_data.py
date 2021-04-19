@@ -1,28 +1,26 @@
-import glob
 import torch
 import numpy as np
-from torch.utils.data import Dataset
-from skimage import data, io
-from PIL import Image
 import pickle
-import time
+
+import glob
+import tqdm
+import datetime
+import multiprocessing as mp
+
 
 
 demo_dir='/root/datasets/mil_sim_push/'
 task_paths = f'{demo_dir}train/task_*.pkl'
 task_info_paths = glob.glob(task_paths)
+print("task_info_paths: ", len(task_info_paths), task_info_paths[0])
 
-num_support = 5
-num_query = 1
-
-
-def test():
-# print(task_info_paths)
-    for index in range(30):
+def test(name, param):
+    for index in param:
+        if index >= len(task_info_paths): continue
+        print(index)
         pickle_file = task_info_paths[index]
         with open(pickle_file, 'rb') as f:
             data = pickle.load(f)
-    # print(data)
         if index == 0: print(data)
 
         action = data['actions']
@@ -38,14 +36,27 @@ def test():
         language = np.load(language_path)
 
         print(type(language), language.shape)
-        task_info = {
-            'demo_selection': data['demo_selection'],
-            'states': state,
-            'actions': action,
-            'instructions': language
-        }
-
-        # print(task_info)
+        # task_info = {
+        #     'demo_selection': data['demo_selection'],
+        #     'states': state,
+        #     'actions': action,
+        #     'instructions': language
+        # }
 
 
-test()
+if __name__ == '__main__':
+    n_step = 20
+    start_t = datetime.datetime.now()
+    num_cores = int(mp.cpu_count())
+    print("Local multi cpu : " + str(num_cores) + "cores")
+    pool = mp.Pool(num_cores)
+    param_dict = {}
+    for i in range(40):
+        param_dict[f"task{i}"] = list(range(i * n_step, (i+1) * n_step))
+
+    results = [pool.apply_async(test, args=(name, param)) for name, param in param_dict.items()]
+    results = [p.get() for p in results]    
+    
+    end_t = datetime.datetime.now()
+    elapsed_sec = (end_t - start_t).total_seconds()
+    print("Total cost time: " + "{:.2f}".format(elapsed_sec) + " sec")
