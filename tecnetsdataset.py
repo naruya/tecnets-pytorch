@@ -45,20 +45,20 @@ class Tecnetsdataset(Dataset):
             demo_path = demo_folder[:-4] + f'/cond{sample_index + 6}*/*.jpg' # 12 demos.
             demo_paths = glob.glob(demo_path)
             # print(demo_paths)
-            image = [torch.from_numpy(np.array(Image.open(demo))).to(device) for demo in demo_paths]
+            image = [torch.from_numpy(np.array(Image.open(demo))) for demo in demo_paths]
             image = torch.stack(image)  # list to tensors.
             images.append(image)  # list of tensors
 
-            action = data['actions'][sample_index].to(device)
+            action = data['actions'][sample_index]
             actions.append(torch.from_numpy(action.astype(np.float32)))
 
-            state = data['states'][sample_index].to(device)
+            state = data['states'][sample_index]
             states.append(torch.from_numpy(state.astype(np.float32)).clone())
         # device = 'cuda'
-        images = torch.stack(images)#.to(device)
-        actions = torch.stack(actions)#.to(device)
-        states = torch.stack(states)#.to(device)
-        instructions = torch.from_numpy(np.array(data['instructions']))#.to(device)
+        images = torch.stack(images)
+        actions = torch.stack(actions)
+        states = torch.stack(states)
+        instructions = torch.from_numpy(np.array(data['instructions']))
 
         # print(language.shape)
         # print(np.array(actions).shape)
@@ -77,8 +77,7 @@ class Tecnetsdataset(Dataset):
         
         # print('images_shape : ', images.shape)  # torch.Size([6, 100, 125,
         # 125, 3])
-        print(images.device)
-        print(actions.device)
+        
         # print("states: ", states.device)
         # print('langauge_shape : ', language.shape)  # torch.Size([1, 128])
         support_actions, query_actions = actions.split(
