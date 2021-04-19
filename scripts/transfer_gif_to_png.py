@@ -13,7 +13,7 @@ task_info_paths = glob.glob(task_paths)
 
 def test():
     # print(task_info_paths)
-    for index in range(30):
+    for index in range(len(task_info_paths)):
         # pickle_file = task_info_paths[index]
         # with open(pickle_file, 'rb') as f:
         #     data = pickle.load(f)
@@ -24,8 +24,9 @@ def test():
             demo_paths = glob.glob(demo_path)
             # _get_gif
             image = []
-#            print(demo_paths[0])
+            print(demo_paths[0])
             for demo in demo_paths:
                 x = Image.open(demo)
                 x = x.convert('RGB')
-                x.save(demo[:-4] + ".png")
+#                x.save(demo[:-4] + ".png")
+test()
