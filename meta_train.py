@@ -88,7 +88,7 @@ if __name__ == '__main__':
 
     for epoch in range(resume_epoch, meta_epochs):
         print("# {}".format(epoch+1))
-        with torch.autograd.profiler.profile(enabled=True, use_cuda=True, profile_memory=False) as prof:
+        with torch.autograd.profiler.profile(enabled=True, use_cuda=True) as prof:
             meta_learner.meta_train(task_loader=train_task_loader, num_batch_tasks=args.num_batch_tasks, num_load_tasks=args.num_load_tasks, epoch=epoch)
         print(prof.table())
         prof.export_chrome_trace('./logs/profile.json')
