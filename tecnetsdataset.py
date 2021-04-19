@@ -77,7 +77,7 @@ class Tecnetsdataset(Dataset):
         
         # print('images_shape : ', images.shape)  # torch.Size([6, 100, 125,
         # 125, 3])
-        
+
         # print("states: ", states.device)
         # print('langauge_shape : ', language.shape)  # torch.Size([1, 128])
         support_actions, query_actions = actions.split(
@@ -86,6 +86,7 @@ class Tecnetsdataset(Dataset):
             [num_support, num_query], dim=0)
         support_images, query_images = images.split(
             [num_support, num_query], dim=0)
+        print(support_images.shape, len(support_actions))
         
         task_info = {
             'support_actions': support_actions,  # len(support), 100, 7.
