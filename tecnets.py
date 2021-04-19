@@ -9,7 +9,7 @@ from meta_learner import MetaLearner
 from utils import vread
 
 import time
-
+from memory_profiler import profile
 
 class TecNets(MetaLearner):
     def __init__(self, device, lr=None):
@@ -53,6 +53,7 @@ class TecNets(MetaLearner):
         loss = torch.max(0.1 - real + fake, zero)  # 4032,
         return loss
 
+    @profile
     def meta_train(
             self,
             task_loader,
