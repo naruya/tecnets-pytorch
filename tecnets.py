@@ -187,8 +187,6 @@ class TecNets(MetaLearner):
 
                     if train:
                         self.opt.step()
-                        # profiler update.
-                        profiler.step()
 
                     loss = loss_emb + loss_ctr_U + loss_ctr_q
                     loss_emb_list.append(loss_emb)
