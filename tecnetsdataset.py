@@ -52,12 +52,12 @@ class Tecnetsdataset(Dataset):
             actions.append(torch.from_numpy(action.astype(np.float32)))
 
             state = data['states'][sample_index]
-            states.append(torch.from_numpy(state.astype(np.float32)))
-
-        images = torch.stack(images, device='cuda')
-        actions = torch.stack((actions), device='cuda')
-        states = torch.stack(states, device='cuda')
-        instructions = torch.from_numpy(np.array(data['instructions']), device='cuda')
+            states.append(torch.from_numpy(state.astype(np.float32)).clone())
+        device = 'cuda'
+        images = torch.stack(images)#.to(device)
+        actions = torch.stack(actions)#.to(device)
+        states = torch.stack(states)#.to(device)
+        instructions = torch.from_numpy(np.array(data['instructions']))#.to(device)
 
         # print(language.shape)
         # print(np.array(actions).shape)
@@ -76,9 +76,9 @@ class Tecnetsdataset(Dataset):
         
         # print('images_shape : ', images.shape)  # torch.Size([6, 100, 125,
         # 125, 3])
-        print(images.device)
-        print(actions.device)
-        print(states.device)
+#        print(images.device)
+#        print(actions.device)
+        print("states: ", states.device)
         # print('langauge_shape : ', language.shape)  # torch.Size([1, 128])
         support_actions, query_actions = actions.split(
             [num_support, num_query], dim=0)

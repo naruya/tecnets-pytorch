@@ -97,7 +97,9 @@ class TecNets(MetaLearner):
 
             support_num, query_num = len(support_image[1]), len(query_image[1])
             size = support_image.shape[4]  # 125 or 64
-
+            # print(support_image.device)
+            # print(query_action.device)
+            # print(query_instruction)
             support_sentence = self.make_sentence(
                 support_image, normalize=True)  # N,20
             query_sentence = self.make_sentence(
