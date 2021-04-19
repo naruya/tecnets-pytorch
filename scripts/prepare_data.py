@@ -31,11 +31,13 @@ def test(name, param):
         #actions.append(action)
         actions = []
         actions.append(torch.from_numpy(action.astype(np.float32)))
+        actions = torch.stack(actions)
         print(type(actions), actions.shape)
 
         state = data['states']
         states = []
         states.append(torch.from_numpy(state.astype(np.float32)))
+        states = torch.stack(states)
         print(type(states), states.shape)
 
         language_path = './datasets/2021_instructions/' + \
