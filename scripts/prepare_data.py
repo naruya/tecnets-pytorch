@@ -26,17 +26,18 @@ def test():
         if index == 0: print(data)
 
         action = data['actions']
-        print(type(action))
-        actions.append(action)
+        print(type(action), action.shape)
+        #actions.append(action)
 
         state = data['states']
-        print(type(state))
+        print(type(state), state.shape)
         # states.append(torch.from_numpy(state.astype(np.float32)).clone())
 
         language_path = './datasets/2021_instructions/' + \
             data['demo_selection'].split('/')[-1][:-4] + '.npy'
         language = np.load(language_path)
 
+        print(type(language), language.shape)
         task_info = {
             'demo_selection': data['demo_selection'],
             'states': state,
