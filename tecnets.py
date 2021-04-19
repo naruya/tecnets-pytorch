@@ -72,7 +72,7 @@ class TecNets(MetaLearner):
 
         with torch.profiler.profile(
             profile_memory=True, record_shapes=True
-        ) as profiler:
+        ) as prof:
             # N tasks  *  (n_tasks/N)iter # e.g. 16task  *  44iter
             for i, tasks in enumerate(tqdm(task_loader)):
 
@@ -193,7 +193,8 @@ class TecNets(MetaLearner):
                     loss_ctr_U_list.append(loss_ctr_U)
                     loss_ctr_q_list.append(loss_ctr_q)
                     loss_list.append(loss)
-        print(prof.key_averages().table(sort_by="self_cpu_memory_usage", row_limit=10))
+                    print(prof.key_averages().table(sort_by="self_cpu_memory_usage", row_limit=10))
+            print(prof.key_averages().table(sort_by="self_cpu_memory_usage", row_limit=10))
 
         # -- end all tasks
 
