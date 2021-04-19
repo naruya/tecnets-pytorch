@@ -52,7 +52,9 @@ six==1.12.0
 tensorboardX==1.7
 terminado==0.8.2
 testpath==0.4.2
-torch==1.1.0
+torch==1.8.1
+torch-tb-profiler==0.1.0
+scikit-image
 tornado==6.0.2
 tqdm==4.32.1
 traitlets==4.3.2

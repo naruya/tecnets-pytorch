@@ -67,16 +67,11 @@ class TecNets(MetaLearner):
         N = num_load_tasks  # e.g. 16
         loss_emb_list, loss_ctr_U_list, loss_ctr_q_list, loss_list = [], [], [], []
 
-        def trace_handler(prof):
-            print(prof.key_averages().table(sort_by="self_cuda_time_total", row_limit=-1))
+        # def trace_handler(prof):
+        #     print(prof.key_averages().table(sort_by="self_cuda_time_total", row_limit=-1))
 
         with torch.profiler.profile(
-            schedule=torch.profiler.schedule(
-                wait=2,
-                warmup=2,
-                active=6,
-                repeat=1),
-            on_trace_ready=torch.profiler.tensorboard_trace_handler("./logs")
+            profile_memory=True, record_shapes=True
         ) as profiler:
             # N tasks  *  (n_tasks/N)iter # e.g. 16task  *  44iter
             for i, tasks in enumerate(tqdm(task_loader)):
@@ -192,6 +187,7 @@ class TecNets(MetaLearner):
 
                     if train:
                         self.opt.step()
+                        # profiler update.
                         profiler.step()
 
                     loss = loss_emb + loss_ctr_U + loss_ctr_q
@@ -199,6 +195,7 @@ class TecNets(MetaLearner):
                     loss_ctr_U_list.append(loss_ctr_U)
                     loss_ctr_q_list.append(loss_ctr_q)
                     loss_list.append(loss)
+        print(prof.key_averages().table(sort_by="self_cpu_memory_usage", row_limit=10))
 
         # -- end all tasks
 
