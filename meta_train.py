@@ -92,4 +92,4 @@ if __name__ == '__main__':
         meta_learner.meta_train(task_loader=train_task_loader, num_batch_tasks=args.num_batch_tasks, num_load_tasks=args.num_load_tasks, epoch=epoch)
         # print(prof.table())
         # prof.export_chrome_trace('./logs/profile.json')
-        meta_learner.meta_valid(task_loader=valid_task_loader, num_batch_tasks=args.num_batch_tasks, num_load_tasks=args.num_load_tasks, epoch=epoch)
+        meta_learner.meta_valid(task_loader=valid_task_loader, num_batch_tasks=args.num_batch_tasks, num_load_tasks=args.num_load_tasks, epoch=epoch, train=False)
