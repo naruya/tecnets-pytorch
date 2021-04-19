@@ -10,14 +10,15 @@ task_paths = f'{demo_dir}train/task_*.pkl'
 task_info_paths = glob.glob(task_paths)
 
 
-def test(index):
-    for sample_index in range(12):
-        demo_path = task_info_paths[index][:-4] + f'/cond{sample_index + 6}*/*.gif'
-        demo_paths = glob.glob(demo_path)
-        # _get_gif
-        # print(demo_paths[0])
-        for demo in demo_paths:
-            Image.open(demo).convert('RGB').save(demo[:-4] + ".jpg")
+def test(param):
+    for index in param:
+        for sample_index in range(12):
+            demo_path = task_info_paths[index][:-4] + f'/cond{sample_index + 6}*/*.gif'
+            demo_paths = glob.glob(demo_path)
+            # _get_gif
+            # print(demo_paths[0])
+            for demo in demo_paths:
+                Image.open(demo).convert('RGB').save(demo[:-4] + ".jpg")
 
 
 if __name__ == '__main__':
