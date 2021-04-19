@@ -11,7 +11,7 @@ import multiprocessing as mp
 
 
 demo_dir='/root/datasets/mil_sim_push/'
-task_paths = f'{demo_dir}train/task_*.pkl'
+task_paths = f'{demo_dir}new_test/task_*.pkl'
 task_info_paths = glob.glob(task_paths)
 print("task_info_paths: ", len(task_info_paths), task_info_paths[0])
 
@@ -56,7 +56,7 @@ def test(name, param):
 
 
 if __name__ == '__main__':
-    n_step = 20
+    n_step = len(task_info_paths) // 35
     start_t = datetime.datetime.now()
     num_cores = int(mp.cpu_count())
     print("Local multi cpu : " + str(num_cores) + "cores")
