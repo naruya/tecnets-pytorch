@@ -26,9 +26,11 @@ if __name__ == '__main__':
     num_cores = int(mp.cpu_count())
     print("Local multi cpu : " + str(num_cores) + "cores")
     pool = mp.Pool(num_cores)
+    
     param_dict = {}
     for i in range(40):
         param_dict[f"task{i}"] = list(range(i*2, (i+1)*2))
+
     results = [pool.apply_async(test, args=(name, param)) for name, param in param_dict.items()]
     results = [p.get() for p in results]    
     
