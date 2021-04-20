@@ -37,6 +37,8 @@ def test(name, param):
                 first_image = Image.open(first_image_path).convert('RGB')
                 last_image = Image.open(last_image_path).convert('RGB')
                 image_list = [np.array(first_image), np.array(last_image)]
+                np.save(first_image_path[:-6], np.array(image_list))
+                print(first_image_path[:-6] + ".npy")
             # for demo in demo_paths:
             #     if demo[-6:] = "/0.gif":
             #         fast = Image.open(demo).convert('RGB')
