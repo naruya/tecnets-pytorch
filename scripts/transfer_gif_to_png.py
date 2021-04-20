@@ -32,10 +32,12 @@ def test(name, param):
             demo_paths = glob.glob(demo_path)
             for demo in demo_paths:
                 if demo[:-4] == ".npy": continue
-                print(demo)
+                # print(demo)
                 first_image_path = glob.glob(demo + "/0.gif")
                 last_image_path = glob.glob(demo + "/99.gif")
-                print(first_image_path)
+                if not first_image_path:
+                    print(demo)
+                # print(first_image_path)
                 # if not first_image_path:
                     # first_image = Image.open(first_image_path).convert('RGB')
                 # 
