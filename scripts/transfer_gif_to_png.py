@@ -1,3 +1,4 @@
+import argparse
 import glob
 from PIL import Image
 import tqdm
@@ -5,10 +6,12 @@ import datetime
 import multiprocessing as mp
 import os
 
-task_type = ["train", "test", "new_test"][1]
+
+parser.add_argument('--task_type', type=str, default="train", " one in ['train', 'test', 'new_test']")
+args = parser.parse_args()
 
 demo_dir = '/root/datasets/mil_sim_push/'
-task_paths = f'{demo_dir}{task_type}/task_*.pkl'
+task_paths = f'{demo_dir}{args.task_type}/task_*.pkl'
 task_info_paths = glob.glob(task_paths)
 print(len(task_info_paths))
 
