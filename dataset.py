@@ -42,16 +42,9 @@ class TecnetsDataset(Dataset):
             # print(self.task_info_paths[index])
             pickle_file
             demo_folder = re.sub('info', '', pickle_file)
-            first_demo_path = demo_folder[:-4] + f'/cond{sample_index + 6}.samp0/0.jpg'
-            last_demo_path = demo_folder[:-4] + f'/cond{sample_index + 6}.samp0/99.jpg'
-            # _get_gif()
-            # image = [torch.from_numpy(np.array(Image.open(first_demo_path))),
-            #             torch.from_numpy(np.array(Image.open(last_demo_path)))]
 
-            # image = torch.stack(image)  # list to tensors.
-            # images.append(image)  # list of tensors
-
-            image_list = [np.array(Image.open(first_demo_path)), np.array(Image.open(last_demo_path))]
+            # !!! will be error when new_test.
+            image_list = np.load(demo_folder[:-4] + f'/cond{sample_index + 6}.samp0.npy')
             images.append(torch.from_numpy(np.array(image_list, np.float32)))
 
             action_list = [data['actions'][sample_index][0], data['actions'][sample_index][-1]]
