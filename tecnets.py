@@ -68,14 +68,13 @@ class TecNets(MetaLearner):
         loss_emb_list = loss_ctr_U_list = loss_ctr_q_list = loss_list = 0
 
         num_task = len(task_loader)
-        print(num_task)
+        # print(num_task)
         for i, tasks in enumerate(tqdm(task_loader)):
             
-            if (i * num_load_tasks) % num_batch_tasks == 0:
-                if train:
-                    self.opt.zero_grad()
-                loss_emb, loss_ctr_U, loss_ctr_q = 0, 0, 0
-                support_sentence_list, query_sentence_list = [], []
+            if train:
+                self.opt.zero_grad()
+            loss_emb, loss_ctr_U, loss_ctr_q = 0, 0, 0
+            support_sentence_list, query_sentence_list = [], []
 
             # N,support_num,100,3,125,125
             # import ipdb; ipdb.set_trace() # to check the tensor on the cuda.
@@ -83,7 +82,6 @@ class TecNets(MetaLearner):
             support_state = tasks["support_states"].to(device)  # N,support_num,100,20
             support_action = tasks["support_actions"].to(device)  # N,support_num,100,7
             # support_instruction = tasks['support_instructions'].to(device)
-
             query_image = tasks["query_images"].to(device)  # N,query_num,100,3,125,125
             query_state = tasks["query_states"].to(device)    # N,query_num,100,20
             query_action = tasks["query_actions"].to(device)  # N,query_num,100,7
@@ -98,8 +96,8 @@ class TecNets(MetaLearner):
             query_sentence = self.make_sentence(
                 query_image, normalize=False)  # N,20
 
-            support_sentence_list.append(support_sentence)
-            query_sentence_list.append(query_sentence)
+            # support_sentence_list.append(support_sentence)
+            # query_sentence_list.append(query_sentence)
 
             # ---- calc loss_ctr ----
             support_image = support_image.view(num_load_tasks * support_num * 2, 3, size, size)  # N * support_num * 2,C,H,W
@@ -128,36 +126,36 @@ class TecNets(MetaLearner):
 
             # ----
 
-            if ((i + 1) * num_load_tasks) % num_batch_tasks == 0:
 
-                # don't convert into list. graph informations will be lost.
-                # (and an error will occur)
-                support_sentence_list = torch.cat(support_sentence_list, 0)  # N ,20 -> N,20
-                query_sentence_list = torch.cat(query_sentence_list, 0)  # N * (B/N),20 -> N,20
+            # don't convert into list. graph informations will be lost.
+            # (and an error will occur)
+            # support_sentence_list = torch.cat(support_sentence_list, 0)  # N ,20 -> N,20
+            # query_sentence_list = torch.cat(query_sentence_list, 0)  # N * (B/N),20 -> N,20
+            
 
-                query_sentence_j_list, support_sentence_j_list, U_si_list = [], [], []
+            query_sentence_j_list, support_sentence_j_list, U_si_list = [], [], []
 
-                # ---- calc loss_emb ----
-                for jdx, (query_sentence_j, support_sentence_j) in enumerate(zip(query_sentence_list, support_sentence_list)):
-                    for idx, U_si in enumerate(support_sentence_list):
-                        if jdx == idx:
-                            continue
-                        query_sentence_j_list.append(query_sentence_j)
-                        support_sentence_j_list.append(support_sentence_j)
-                        U_si_list.append(U_si)
+            # ---- calc loss_emb ----
+            for jdx, (query_sentence_j, support_sentence_j) in enumerate(zip(query_sentence, support_sentence)):
+                for idx, U_si in enumerate(support_sentence):
+                    if jdx == idx:
+                        continue
+                    query_sentence_j_list.append(query_sentence_j)
+                    support_sentence_j_list.append(support_sentence_j)
+                    U_si_list.append(U_si)
 
-                _loss_emb = torch.sum(self.cos_hinge_loss(query_sentence_j_list, support_sentence_j_list, U_si_list)) * 1.0
+            _loss_emb = torch.sum(self.cos_hinge_loss(query_sentence_j_list, support_sentence_j_list, U_si_list)) * 1.0
 
-                if train:
-                    _loss_emb.backward()
-                    self.opt.step()
-                loss_emb = _loss_emb.item()
+            if train:
+                _loss_emb.backward()
+                self.opt.step()
+            loss_emb = _loss_emb.item()
 
-                loss = loss_emb + loss_ctr_U + loss_ctr_q
-                loss_emb_list += loss_emb
-                loss_ctr_U_list += loss_ctr_U
-                loss_ctr_q_list += loss_ctr_q
-                loss_list += loss
+            loss = loss_emb + loss_ctr_U + loss_ctr_q
+            loss_emb_list += loss_emb
+            loss_ctr_U_list += loss_ctr_U
+            loss_ctr_q_list += loss_ctr_q
+            loss_list += loss
         # -- end all tasks
 
         loss_emb = loss_emb_list / num_task
