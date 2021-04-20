@@ -16,27 +16,42 @@ task_paths = f'{demo_dir}{args.task_type}/task_*.pkl'
 task_info_paths = glob.glob(task_paths)
 print(len(task_info_paths))
 
-to_jpg = False
+to_npy = True
 
 
 def test(name, param):
     for index in param:
         if index >= len(task_info_paths): continue
-        if to_jpg:
-            demo_path = task_info_paths[index][:-4] + '/cond*/*.gif'
+        demo_path = task_info_paths[index][:-4] + '/cond*/*.gif'
+        demo_paths = glob.glob(demo_path)
+        # for demo in demo_paths:
+        #     if os.path.exists(demo[:-4] + ".jpg"): continue
+        #     Image.open(demo).convert('RGB').save(demo[:-4] + ".jpg")
+        if to_npy:
+            demo_path = task_info_paths[index][:-4] + '/cond*'
             demo_paths = glob.glob(demo_path)
-            print(index)
             for demo in demo_paths:
-                if os.path.exists(demo[:-4] + ".jpg"): continue
-                Image.open(demo).convert('RGB').save(demo[:-4] + ".jpg")
-        else:
-            first_demo_path = task_info_paths[index][:-4] + '/cond*/0.gif'
-            first_demo = glob.glob(first_demo_path)[0]
-            last_demo_path = task_info_paths[index][:-4] + '/cond*/99.gif'
-            last_demo = glob.glob(last_demo_path)[0]
-            print("last_demo: ", last_demo)
-            image_list = [np.array(Image.open(first_demo), np.float32), np.array(Image.open(last_demo), np.float32)]
-            np.save(first_demo_path[:-6], np.array(image_list))
+                print(demo)
+                if len(demo) == 9: continue
+                first_image_path = glob.glob(demo + "/0.gif")
+                last_image_path = glob.glob(demo + "/99.gif")
+                first_image = Image.open(first_image_path).convert('RGB')
+                last_image = Image.open(last_image_path).convert('RGB')
+                image_list = [np.array(first_image), np.array(last_image)]
+                print(type(np.array(image_list, np.float32)))
+            # for demo in demo_paths:
+            #     if demo[-6:] = "/0.gif":
+            #         fast = Image.open(demo).convert('RGB')
+            #     elif demo[-7:] = "/99.gif":
+            #         last = Image.open(demo).convert('RGB')
+                
+            #     if os.path.exists(demo[:-4] + ".jpg"): continue
+            #     Image.open(demo).convert('RGB').save(demo[:-4] + ".jpg")
+
+
+            # print("last_demo: ", last_demo)
+            # image_list = [np.array(Image.open(first_demo), np.float32), np.array(Image.open(last_demo), np.float32)]
+            # np.save(first_demo[:-6], np.array(image_list))
 
 
 if __name__ == '__main__':
