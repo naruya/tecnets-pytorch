@@ -6,7 +6,7 @@ from skimage import data, io
 from PIL import Image
 import pickle
 import re
-# from delogger.presets.profiler import logger
+from delogger.presets.profiler import logger
 
 class TecnetsDataset(Dataset):
     def __init__(self, demo_dir='./datasets/mil_sim_push/', train=True):
