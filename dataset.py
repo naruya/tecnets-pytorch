@@ -42,25 +42,32 @@ class TecnetsDataset(Dataset):
             # print(self.task_info_paths[index])
             pickle_file
             demo_folder = re.sub('info', '', pickle_file)
-            demo_path = demo_folder[:-4] + f'/cond{sample_index + 6}*/*.jpg' # 12 demos.
-            demo_paths = glob.glob(demo_path)
+            first_demo_path = demo_folder[:-4] + f'/cond{sample_index + 6}.samp0/0.jpg'
+            last_demo_path = demo_folder[:-4] + f'/cond{sample_index + 6}.samp0/99.jpg'
 
             # _get_gif()
-            image = [torch.from_numpy(np.array(Image.open(demo))) for demo in demo_paths]
-            image = torch.stack(image)  # list to tensors.
-            images.append(image)  # list of tensors
+            # image = [torch.from_numpy(np.array(Image.open(first_demo_path))),
+            #             torch.from_numpy(np.array(Image.open(last_demo_path)))]
 
-            action = data['actions'][sample_index]
-            actions.append(torch.from_numpy(action.astype(np.float32)))
+            # image = torch.stack(image)  # list to tensors.
+            # images.append(image)  # list of tensors
 
-            state = data['states'][sample_index]
-            states.append(torch.from_numpy(state.astype(np.float32)).clone())
+            image_list = [Image.open(first_demo_path), Image.open(last_demo_path)]
+            images.append(torch.from_numpy(np.array(image_list)))
+
+            action_list = [data['actions'][sample_index][0], data['actions'][sample_index][-1]]
+            actions.append(torch.from_numpy(np.array(action_list)))
+
+            state_list = [data['states'][sample_index][0], data['states'][sample_index][-1]]
+            states.append(torch.from_numpy(np.array(state_list)))
 
         images = torch.stack(images)
         actions = torch.stack(actions)
         states = torch.stack(states)
         instructions = torch.from_numpy(np.array(data['instructions']))
-
+        print("images_shape: ", images.shape)
+        print("actions_shape: ", actions.shape)
+        print("states_shape: ", states.shape)
         support_actions, query_actions = actions.split(
             [num_support, num_query], dim=0)
         support_states, query_states = states.split(
