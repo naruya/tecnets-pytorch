@@ -19,22 +19,17 @@ class TecNets(MetaLearner):
 
     def make_sentence(self, image, normalize):
         N, k, _F, _C, W, H = image.shape
-        
         # N,k,2,3,H,W
         inp = torch.cat([image[:, :, 0], image[:, :, -1]], dim=2)  # N,k,6,H,W
         inp = inp.view(N * k, 6, H, W)
         
-        # import ipdb; ipdb.set_trace()
-        sentence = self.emb_net(
-            inp.view(N * k, 6, H, W)).view(N, k, 20)     # N,k,20
-        # print(sentence)
-        if normalize:
-            sentence = sentence.mean(1)  # N,20
-            sentence = sentence / torch.norm(sentence, 1)
-        else:
-            sentence = sentence[:, 0]    # N,20
+        sentence = self.emb_net(inp).view(N, k, 20)     # N,k,20
 
-        return sentence
+        if normalize:
+            sentence = torch.norm(sentence, 2).mean(1)  # N, k, 20 => N, 20.
+            return torch.norm(sentence, 1)  # N, 20
+        else:
+            return sentence[:, 0]  # N,20 ??  maybe error here.
 
     def cos_hinge_loss(
             self,
@@ -52,7 +47,7 @@ class TecNets(MetaLearner):
         # print("zero: ", zero.device)
         loss = torch.max(0.1 - real + fake, zero)  # 4032,
         return loss
-
+    
     @logger.line_memory_profile
     def meta_train(
             self,
@@ -124,18 +119,17 @@ class TecNets(MetaLearner):
             loss_ctr_U += _loss_ctr_U.item()
             loss_ctr_q += _loss_ctr_q.item()
 
-            # ----
-
-
             # don't convert into list. graph informations will be lost.
             # (and an error will occur)
             # support_sentence_list = torch.cat(support_sentence_list, 0)  # N ,20 -> N,20
             # query_sentence_list = torch.cat(query_sentence_list, 0)  # N * (B/N),20 -> N,20
-            
 
             query_sentence_j_list, support_sentence_j_list, U_si_list = [], [], []
 
             # ---- calc loss_emb ----
+            similarities = torch.matmul(support_sentence, torch.transpose(query_sentence, 0, 1))
+            print(similarities.shape)
+
             for jdx, (query_sentence_j, support_sentence_j) in enumerate(zip(query_sentence, support_sentence)):
                 for idx, U_si in enumerate(support_sentence):
                     if jdx == idx:
