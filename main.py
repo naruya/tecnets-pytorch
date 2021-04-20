@@ -59,7 +59,7 @@ if __name__ == '__main__':
     
     torch.backends.cudnn.benchmark = True
 
-    meta_epochs = 4  # 400000/11
+    meta_epochs = 2  # 400000/11
 
     for epoch in range(resume_epoch, meta_epochs):
         print("# {}".format(epoch + 1))

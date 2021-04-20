@@ -18,7 +18,7 @@ from utils import load_scale_and_bias
 import cv2
 
 class MetaLearner(object):
-    def __init__(self, device, lr):
+    def __init__(self, device, learning_rate):
         
         self.device = device
 
@@ -33,8 +33,8 @@ class MetaLearner(object):
 
         params = list(self.emb_net.parameters()) + list(self.ctr_net.parameters())
 
-        if lr:
-            self.opt = Adam(params, lr=lr)
+        if learning_rate:
+            self.opt = Adam(params, lr=learning_rate)
 
     def save_emb_net(self, model_path):
         torch.save(self.emb_net.state_dict(), model_path)
