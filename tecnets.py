@@ -65,10 +65,12 @@ class TecNets(MetaLearner):
 
         device = self.device
 
-        loss_emb_list, loss_ctr_U_list, loss_ctr_q_list, loss_list = [], [], [], []
+        loss_emb_list = loss_ctr_U_list = loss_ctr_q_list = loss_list = 0
 
+        num_task = len(task_loader)
+        print(num_task)
         for i, tasks in enumerate(tqdm(task_loader)):
-
+            
             if (i * num_load_tasks) % num_batch_tasks == 0:
                 if train:
                     self.opt.zero_grad()
@@ -152,16 +154,16 @@ class TecNets(MetaLearner):
                 loss_emb = _loss_emb.item()
 
                 loss = loss_emb + loss_ctr_U + loss_ctr_q
-                loss_emb_list.append(loss_emb)
-                loss_ctr_U_list.append(loss_ctr_U)
-                loss_ctr_q_list.append(loss_ctr_q)
-                loss_list.append(loss)
+                loss_emb_list += loss_emb
+                loss_ctr_U_list += loss_ctr_U
+                loss_ctr_q_list += loss_ctr_q
+                loss_list += loss
         # -- end all tasks
 
-        loss_emb = np.mean(loss_emb_list)
-        loss_ctr_U = np.mean(loss_ctr_U_list)
-        loss_ctr_q = np.mean(loss_ctr_q_list)
-        loss = np.mean(loss_list)
+        loss_emb = loss_emb_list / num_task
+        loss_ctr_U = loss_ctr_U_list / num_task
+        loss_ctr_q = loss_ctr_q_list / num_task
+        loss = loss_list / num_task
 
         print(
             "loss:",
