@@ -9,7 +9,9 @@ from meta_learner import MetaLearner
 from utils import vread
 
 import time
-from memory_profiler import profile
+
+from delogger.presets.profiler import logger
+
 
 class TecNets(MetaLearner):
     def __init__(self, device, learning_rate=None):
@@ -51,7 +53,7 @@ class TecNets(MetaLearner):
         loss = torch.max(0.1 - real + fake, zero)  # 4032,
         return loss
 
-    @profile
+    @logger.line_memory_profile
     def meta_train(
             self,
             task_loader,
@@ -125,7 +127,7 @@ class TecNets(MetaLearner):
 
             # ----
 
-            if ((i + 1) * N) % B == 0:
+            if ((i + 1) * num_load_tasks) % num_batch_tasks == 0:
 
                 # don't convert into list. graph informations will be lost.
                 # (and an error will occur)
