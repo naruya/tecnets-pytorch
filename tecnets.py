@@ -86,7 +86,8 @@ class TecNets(MetaLearner):
             query_state = tasks["query_states"].to(device)    # N,query_num,100,20
             query_action = tasks["query_actions"].to(device)  # N,query_num,100,7
             # query_instruction = tasks['query_instructions'].to(device)  # # len(query), 1, 128.
-
+            print("query_action.device: ", query_action.device)
+            print("support_image.device: ", support_image.device)
             support_num, query_num = len(support_image[1]), len(query_image[1])
             size = 125  # 125 or 64
 
@@ -129,7 +130,7 @@ class TecNets(MetaLearner):
 
                 # don't convert into list. graph informations will be lost.
                 # (and an error will occur)
-                support_sentence_list = torch.cat(support_sentence_list, 0)  # N * (B/N),20 -> N,20
+                support_sentence_list = torch.cat(support_sentence_list, 0)  # N ,20 -> N,20
                 query_sentence_list = torch.cat(query_sentence_list, 0)  # N * (B/N),20 -> N,20
 
                 query_sentence_j_list, support_sentence_j_list, U_si_list = [], [], []
