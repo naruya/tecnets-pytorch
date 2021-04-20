@@ -6,8 +6,8 @@ import datetime
 import multiprocessing as mp
 import os
 
-
-parser.add_argument('--task_type', type=str, default="train", " one in ['train', 'test', 'new_test']")
+parser = argparse.ArgumentParser(description='transfer_git_to_xxx')
+parser.add_argument('--task_type', type=str, default="train", description='one in ["train", "test", "new_test"]')
 args = parser.parse_args()
 
 demo_dir = '/root/datasets/mil_sim_push/'
