@@ -5,7 +5,7 @@ import datetime
 import multiprocessing as mp
 import os
 
-task_type = ["train", "test", "new_test"][0]
+task_type = ["train", "test", "new_test"][1]
 
 demo_dir = '/root/datasets/mil_sim_push/'
 task_paths = f'{demo_dir}{task_type}/task_*.pkl'
@@ -30,8 +30,9 @@ if __name__ == '__main__':
     pool = mp.Pool(num_cores)
     
     param_dict = {}
-    for i in range(40):
-        param_dict[f"task{i}"] = list(range(i*2, (i+1)*2))
+    num_task_each_worker_address = len(task_info_paths) // num_cores + 1
+    for i in range(num_cores):
+        param_dict[f"task{i}"] = list(range(i * num_task_each_worker_address, (i + 1) * num_task_each_worker_address))
 
     results = [pool.apply_async(test, args=(name, param)) for name, param in param_dict.items()]
     results = [p.get() for p in results]    
