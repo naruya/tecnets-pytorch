@@ -12,7 +12,7 @@ import time
 from memory_profiler import profile
 
 class TecNets(MetaLearner):
-    def __init__(self, device, lr=None):
+    def __init__(self, device, learning_rate=None):
         super(TecNets, self).__init__(device, learning_rate)
 
     def make_sentence(self, image, normalize):

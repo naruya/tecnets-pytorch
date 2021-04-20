@@ -6,7 +6,7 @@ from skimage import data, io
 from PIL import Image
 import pickle
 import re
-
+from delogger.presets.profiler import logger
 
 class TecnetsDataset(Dataset):
     def __init__(self, demo_dir='./datasets/mil_sim_push/', train=True):
@@ -21,7 +21,7 @@ class TecnetsDataset(Dataset):
     def __len__(self):
         return len(self.task_info_paths)
 
-    @profile
+    @logger.line_memory_profile
     def __getitem__(self, index, num_support=5, num_query=1):
         # get data from task_paths.
         pickle_file = self.task_info_paths[index]
