@@ -8,7 +8,7 @@ import pickle
 import re
 
 
-class Tecnetsdataset(Dataset):
+class TecnetsDataset(Dataset):
     def __init__(self, demo_dir='./datasets/mil_sim_push/', train=True):
         # select the gif folder.
         if train:
@@ -21,8 +21,8 @@ class Tecnetsdataset(Dataset):
     def __len__(self):
         return len(self.task_info_paths)
 
+    @profile
     def __getitem__(self, index, num_support=5, num_query=1):
-        device = 'cuda'
         # get data from task_paths.
         pickle_file = self.task_info_paths[index]
         with open(pickle_file, 'rb') as f:
@@ -44,7 +44,8 @@ class Tecnetsdataset(Dataset):
             demo_folder = re.sub('info', '', pickle_file)
             demo_path = demo_folder[:-4] + f'/cond{sample_index + 6}*/*.jpg' # 12 demos.
             demo_paths = glob.glob(demo_path)
-            # print(demo_paths)
+
+            # _get_gif()
             image = [torch.from_numpy(np.array(Image.open(demo))) for demo in demo_paths]
             image = torch.stack(image)  # list to tensors.
             images.append(image)  # list of tensors
@@ -54,32 +55,12 @@ class Tecnetsdataset(Dataset):
 
             state = data['states'][sample_index]
             states.append(torch.from_numpy(state.astype(np.float32)).clone())
-        # device = 'cuda'
+
         images = torch.stack(images)
         actions = torch.stack(actions)
         states = torch.stack(states)
         instructions = torch.from_numpy(np.array(data['instructions']))
 
-        # print(language.shape)
-        # print(np.array(actions).shape)
-        # print(np.array(images).shape)
-        # print(np.array(states).shape)
-
-        # import ipdb; ipdb.set_trace()
-        # actions = np.array(actions)
-        # print(type(actions))
-        # actions = torch.from_numpy(actions.astype(np.float32)).clone()
-        # print(type(actions), actions.shape)
-
-        # print('actions_shape : ',actions.shape)  # torch.Size([6, 100, 7])
-        
-        # print('states_shape : ',states.shape)  # torch.Size([6, 100, 20])
-        
-        # print('images_shape : ', images.shape)  # torch.Size([6, 100, 125,
-        # 125, 3])
-
-        # print("states: ", states.device)
-        # print('langauge_shape : ', language.shape)  # torch.Size([1, 128])
         support_actions, query_actions = actions.split(
             [num_support, num_query], dim=0)
         support_states, query_states = states.split(
@@ -91,16 +72,13 @@ class Tecnetsdataset(Dataset):
         task_info = {
             'support_actions': support_actions,  # len(support), 100, 7.
             'support_states': support_states,  # len(support), 100,20.
-            # len(support), 100, 3, 125, 125.
             'support_images': ((support_images.permute(0, 1, 4, 2, 3) - 127.5) / 127.5),
             'support_instructions': instructions,  # len(support), 1, 128.
             'query_actions': query_actions,  # len(query), 100, 7.
             'query_states': query_states,  # len(query), 100, 20.
-            # len(query), 100, 3, 125, 125.
             'query_images': ((query_images.permute(0, 1, 4, 2, 3) - 127.5) / 127.5),
             'query_instructions': instructions,  # len(query), 1, 128.
         }
-        # print("task_info is_cude? :", task_info.is_cuda)
         return task_info
 
     # def _get_gif(self, demo_paths):

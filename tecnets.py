@@ -13,17 +13,15 @@ from memory_profiler import profile
 
 class TecNets(MetaLearner):
     def __init__(self, device, lr=None):
-        super(TecNets, self).__init__(device, lr)
+        super(TecNets, self).__init__(device, learning_rate)
 
     def make_sentence(self, image, normalize):
         N, k, _F, _C, W, H = image.shape
-        # print('image_shape : ',image.shape)                    #
+        
         # N,k,100,3,H,W
         inp = torch.cat([image[:, :, 0], image[:, :, -1]], dim=2)  # N,k,6,H,W
-        # print(inp.shape)
         inp = inp.view(N * k, 6, H, W)
-        # print(inp.shape)
-
+        
         # import ipdb; ipdb.set_trace()
         sentence = self.emb_net(
             inp.view(N * k, 6, H, W)).view(N, k, 20)     # N,k,20
@@ -62,32 +60,24 @@ class TecNets(MetaLearner):
             epoch=1000,
             writer=None,
             train=True):
+
         device = self.device
 
-        B = num_batch_tasks
-        N = num_load_tasks  # e.g. 16
         loss_emb_list, loss_ctr_U_list, loss_ctr_q_list, loss_list = [], [], [], []
 
-        # def trace_handler(prof):
-        #     print(prof.key_averages().table(sort_by="self_cuda_time_total", row_limit=-1))
-
-        # with torch.profiler.profile(
-        #     profile_memory=True, record_shapes=True
-        # ) as prof:
-            # N tasks  *  (n_tasks/N)iter # e.g. 16task  *  44iter
         for i, tasks in enumerate(tqdm(task_loader)):
 
-            if (i * N) % B == 0:
+            if (i * num_load_tasks) % num_batch_tasks == 0:
                 if train:
                     self.opt.zero_grad()
                 loss_emb, loss_ctr_U, loss_ctr_q = 0, 0, 0
                 support_sentence_list, query_sentence_list = [], []
 
             # N,support_num,100,3,125,125
+            import ipdb; ipdb.set_trace() # to check the tensor on the cuda.
             support_image = tasks["support_images"].to(device)
             support_state = tasks["support_states"].to(device)  # N,support_num,100,20
             support_action = tasks["support_actions"].to(device)  # N,support_num,100,7
-            # len(support), 1, 128.
             support_instruction = tasks['support_instructions'].to(device)
 
             query_image = tasks["query_images"].to(device)  # N,query_num,100,3,125,125
@@ -109,13 +99,13 @@ class TecNets(MetaLearner):
             query_sentence_list.append(query_sentence)
 
             # ---- calc loss_ctr ----
-            support_image = support_image.view(N * support_num * 100, 3, size, size)  # N * support_num * 100,C,H,W
-            support_state = support_state.view(N * support_num * 100, 20)            # N * support_num * 100,20
-            support_action = support_action.view(N * support_num * 100, 7)           # N * support_num * 100,7
+            support_image = support_image.view(num_load_tasks * support_num * 100, 3, size, size)  # N * support_num * 100,C,H,W
+            support_state = support_state.view(num_load_tasks * support_num * 100, 20)            # N * support_num * 100,20
+            support_action = support_action.view(num_load_tasks * support_num * 100, 7)           # N * support_num * 100,7
             # print(support_action.device)
-            query_image = query_image.view(N * query_num * 100, 3, size, size)  # N * query_num * 100,C,H,W
-            query_state = query_state.view(N * query_num * 100, 20)            # N * query_num * 100,20
-            query_action = query_action.view(N * query_num * 100, 7)           # N * query_num * 100,7
+            query_image = query_image.view(num_load_tasks * query_num * 100, 3, size, size)  # N * query_num * 100,C,H,W
+            query_state = query_state.view(num_load_tasks * query_num * 100, 20)            # N * query_num * 100,20
+            query_action = query_action.view(num_load_tasks * query_num * 100, 7)           # N * query_num * 100,7
             
             support_sentence_U_inp = support_sentence.repeat_interleave(100 * support_num, dim=0)        # N * support_num * 100,20
             support_sentence_q_inp = support_sentence.repeat_interleave(100 * query_num, dim=0)        # N * query_num * 100,20
