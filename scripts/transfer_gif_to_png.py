@@ -31,9 +31,10 @@ def test(name, param):
                 Image.open(demo).convert('RGB').save(demo[:-4] + ".jpg")
         else:
             first_demo_path = task_info_paths[index][:-4] + '/cond*/0.gif'
-            first_demo = glob.glob(first_demo_path)
+            first_demo = glob.glob(first_demo_path)[0]
             last_demo_path = task_info_paths[index][:-4] + '/cond*/99.gif'
-            last_demo = glob.glob(last_demo_path)
+            last_demo = glob.glob(last_demo_path)[0]
+            print("last_demo: ", last_demo)
             image_list = [np.array(Image.open(first_demo), np.float32), np.array(Image.open(last_demo), np.float32)]
             np.save(first_demo_path[:-6], np.array(image_list))
 
