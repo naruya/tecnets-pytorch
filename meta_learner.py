@@ -12,8 +12,8 @@ import torch
 import torch.nn.functional as F
 from torch.optim import Adam
 
-from ctr_net import ControlNet
-from emb_net import EmbeddingNet
+from networks.ctr_net import ControlNet
+from networks.emb_net import EmbeddingNet
 from utils import load_scale_and_bias
 import cv2
 
