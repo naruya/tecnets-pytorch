@@ -5,6 +5,7 @@ import tqdm
 import datetime
 import multiprocessing as mp
 import os
+import numpy as np
 
 parser = argparse.ArgumentParser(description='transfer_git_to_xxx')
 parser.add_argument('--task_type', type=str, default="train")
@@ -15,15 +16,24 @@ task_paths = f'{demo_dir}{args.task_type}/task_*.pkl'
 task_info_paths = glob.glob(task_paths)
 print(len(task_info_paths))
 
+to_jpg = False
+
+
 def test(name, param):
     for index in param:
         if index >= len(task_info_paths): continue
-        demo_path = task_info_paths[index][:-4] + '/cond*/*.gif'
-        demo_paths = glob.glob(demo_path)
-        print(index)
-        # for demo in demo_paths:
-            # if os.path.exists(demo[:-4] + ".jpg"): continue
-            # Image.open(demo).convert('RGB').save(demo[:-4] + ".jpg")
+        if to_jpg:
+            demo_path = task_info_paths[index][:-4] + '/cond*/*.gif'
+            demo_paths = glob.glob(demo_path)
+            print(index)
+            for demo in demo_paths:
+                if os.path.exists(demo[:-4] + ".jpg"): continue
+                Image.open(demo).convert('RGB').save(demo[:-4] + ".jpg")
+        else:
+            first_demo_path = task_info_paths[index][:-4] + '/cond*/0.gif'
+            last_demo_path = task_info_paths[index][:-4] + '/cond*/99.gif'
+            image_list = [np.array(Image.open(first_demo_path), np.float32), np.array(Image.open(last_demo_path), np.float32)]
+            np.save(first_demo_path[:-6], np.array(image_list))
 
 
 if __name__ == '__main__':
