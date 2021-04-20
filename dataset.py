@@ -44,7 +44,6 @@ class TecnetsDataset(Dataset):
             demo_folder = re.sub('info', '', pickle_file)
             first_demo_path = demo_folder[:-4] + f'/cond{sample_index + 6}.samp0/0.jpg'
             last_demo_path = demo_folder[:-4] + f'/cond{sample_index + 6}.samp0/99.jpg'
-
             # _get_gif()
             # image = [torch.from_numpy(np.array(Image.open(first_demo_path))),
             #             torch.from_numpy(np.array(Image.open(last_demo_path)))]
@@ -52,7 +51,7 @@ class TecnetsDataset(Dataset):
             # image = torch.stack(image)  # list to tensors.
             # images.append(image)  # list of tensors
 
-            image_list = [Image.open(first_demo_path), Image.open(last_demo_path)]
+            image_list = [np.array(Image.open(first_demo_path)), np.array(Image.open(last_demo_path))]
             images.append(torch.from_numpy(np.array(image_list)))
 
             action_list = [data['actions'][sample_index][0], data['actions'][sample_index][-1]]
@@ -65,9 +64,9 @@ class TecnetsDataset(Dataset):
         actions = torch.stack(actions)
         states = torch.stack(states)
         instructions = torch.from_numpy(np.array(data['instructions']))
-        print("images_shape: ", images.shape)
-        print("actions_shape: ", actions.shape)
-        print("states_shape: ", states.shape)
+#        print("images_shape: ", images.shape)
+#        print("actions_shape: ", actions.shape)
+#        print("states_shape: ", states.shape)
         support_actions, query_actions = actions.split(
             [num_support, num_query], dim=0)
         support_states, query_states = states.split(
