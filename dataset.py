@@ -21,7 +21,7 @@ class TecnetsDataset(Dataset):
     def __len__(self):
         return len(self.task_info_paths)
 
-    @logger.line_memory_profile
+#    @logger.line_memory_profile
     def __getitem__(self, index, num_support=1, num_query=1):
         # get data from task_paths.
         pickle_file = self.task_info_paths[index]

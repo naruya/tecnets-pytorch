@@ -24,12 +24,19 @@ class TecNets(MetaLearner):
         inp = inp.view(N * k, 6, H, W)
         
         sentence = self.emb_net(inp).view(N, k, 20)     # N,k,20
-
+#        print(sentence.shape)
         if normalize:
-            sentence = torch.norm(sentence, p=2, dim=2).mean(1)  # N, k, 20 => N, 20.
-            return torch.norm(sentence, p=2, dim=1)  # N, 20
+            sentence = self._norm(sentence, axis=2, keepdim=True)
+            sentence = torch.mean(sentence, 1)
+            sentence = self._norm(sentence, axis=1, keepdim=True)
+            print("normed!", sentence.shape)
+            return sentence
         else:
             return sentence[:, 0]  # N,20 ??  maybe error here.
+    
+    def _norm(self, vecs, axis=1, keepdim=False):
+        mag = torch.linalg.norm(vecs, dim=axis, keepdim=keepdim)
+        return vecs / mag
 
     def cos_hinge_loss(
             self,
