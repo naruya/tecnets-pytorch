@@ -31,7 +31,7 @@ def test(name, param):
             demo_path = task_info_paths[index][:-4] + '/cond*'
             demo_paths = glob.glob(demo_path)
             for demo in demo_paths:
-                if len(demo) < len("/root/datasets/mil_sim_push/test/task_39/cond8.samp0"): continue
+                if len(demo) < len("/root/datasets/mil_sim_push/test/task_39/cond.samp0"): continue
                 first_image_path = glob.glob(demo + "/0.gif")[0]
                 last_image_path = glob.glob(demo + "/99.gif")[0]
                 first_image = Image.open(first_image_path).convert('RGB')
