@@ -5,8 +5,10 @@ import datetime
 import multiprocessing as mp
 import os
 
+task_type = ["train", "test", "new_test"][0]
+
 demo_dir = '/root/datasets/mil_sim_push/'
-task_paths = f'{demo_dir}new_test/task_*.pkl'
+task_paths = f'{demo_dir}{task_type}/task_*.pkl'
 task_info_paths = glob.glob(task_paths)
 print(len(task_info_paths))
 
@@ -16,9 +18,9 @@ def test(name, param):
         demo_path = task_info_paths[index][:-4] + '/cond*/*.gif'
         demo_paths = glob.glob(demo_path)
         print(index)
-        for demo in demo_paths:
-            if os.path.exists(demo[:-4] + ".jpg"): continue
-            Image.open(demo).convert('RGB').save(demo[:-4] + ".jpg")
+        # for demo in demo_paths:
+            # if os.path.exists(demo[:-4] + ".jpg"): continue
+            # Image.open(demo).convert('RGB').save(demo[:-4] + ".jpg")
 
 
 if __name__ == '__main__':
