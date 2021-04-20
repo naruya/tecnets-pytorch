@@ -88,8 +88,8 @@ class TecNets(MetaLearner):
             query_state = tasks["query_states"].to(device)    # N,query_num,100,20
             query_action = tasks["query_actions"].to(device)  # N,query_num,100,7
             # query_instruction = tasks['query_instructions'].to(device)  # # len(query), 1, 128.
-            print("query_action.device: ", query_action.device)
-            print("support_image.device: ", support_image.device)
+            # print("query_action.device: ", query_action.device)
+            # print("support_image.device: ", support_image.device)
             support_num, query_num = len(support_image[1]), len(query_image[1])
             size = 125  # 125 or 64
 
