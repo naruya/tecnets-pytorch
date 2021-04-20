@@ -26,8 +26,8 @@ class TecNets(MetaLearner):
         sentence = self.emb_net(inp).view(N, k, 20)     # N,k,20
 
         if normalize:
-            sentence = torch.norm(sentence, 2).mean(1)  # N, k, 20 => N, 20.
-            return torch.norm(sentence, 1)  # N, 20
+            sentence = torch.norm(sentence, p=2, dim=2).mean(1)  # N, k, 20 => N, 20.
+            return torch.norm(sentence, p=2, dim=1)  # N, 20
         else:
             return sentence[:, 0]  # N,20 ??  maybe error here.
 
