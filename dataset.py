@@ -57,9 +57,9 @@ class TecnetsDataset(Dataset):
         actions = torch.stack(actions)
         states = torch.stack(states)
         instructions = torch.from_numpy(np.array(data['instructions'], np.float32))
-#        print("images_shape: ", images.shape)
-#        print("actions_shape: ", actions.shape)
-#        print("states_shape: ", states.shape)
+        print("images_shape: ", images.shape)
+        print("actions_shape: ", actions.shape)
+        print("states_shape: ", states.shape)
         support_actions, query_actions = actions.split(
             [num_support, num_query], dim=0)
         support_states, query_states = states.split(
