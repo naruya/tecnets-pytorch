@@ -31,7 +31,7 @@ def test(name, param):
             demo_path = task_info_paths[index][:-4] + '/cond*'
             demo_paths = glob.glob(demo_path)
             for demo in demo_paths:
-                if demo[:-4] == ".npy": continue
+                if demo[-4:] == ".npy": continue
                 # print(demo)
                 first_image_path = glob.glob(demo + "/0.gif")
                 last_image_path = glob.glob(demo + "/99.gif")
