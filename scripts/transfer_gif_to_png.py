@@ -31,14 +31,12 @@ def test(name, param):
             demo_path = task_info_paths[index][:-4] + '/cond*'
             demo_paths = glob.glob(demo_path)
             for demo in demo_paths:
-                if len(demo) < ("/root/datasets/mil_sim_push/test/task_39/cond8.samp0"): continue
-                first_image_path = glob.glob(demo + "/0.gif")
-                last_image_path = glob.glob(demo + "/99.gif")
-                print(first_image_path)
+                if len(demo) < len("/root/datasets/mil_sim_push/test/task_39/cond8.samp0"): continue
+                first_image_path = glob.glob(demo + "/0.gif")[0]
+                last_image_path = glob.glob(demo + "/99.gif")[0]
                 first_image = Image.open(first_image_path).convert('RGB')
                 last_image = Image.open(last_image_path).convert('RGB')
                 image_list = [np.array(first_image), np.array(last_image)]
-                print(type(np.array(image_list, np.float32)))
             # for demo in demo_paths:
             #     if demo[-6:] = "/0.gif":
             #         fast = Image.open(demo).convert('RGB')
