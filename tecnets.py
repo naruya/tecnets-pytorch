@@ -20,7 +20,7 @@ class TecNets(MetaLearner):
     def make_sentence(self, image, normalize):
         N, k, _F, _C, W, H = image.shape
         
-        # N,k,100,3,H,W
+        # N,k,2,3,H,W
         inp = torch.cat([image[:, :, 0], image[:, :, -1]], dim=2)  # N,k,6,H,W
         inp = inp.view(N * k, 6, H, W)
         
@@ -99,16 +99,16 @@ class TecNets(MetaLearner):
             query_sentence_list.append(query_sentence)
 
             # ---- calc loss_ctr ----
-            support_image = support_image.view(num_load_tasks * support_num * 100, 3, size, size)  # N * support_num * 100,C,H,W
-            support_state = support_state.view(num_load_tasks * support_num * 100, 20)            # N * support_num * 100,20
-            support_action = support_action.view(num_load_tasks * support_num * 100, 7)           # N * support_num * 100,7
+            support_image = support_image.view(num_load_tasks * support_num * 2, 3, size, size)  # N * support_num * 2,C,H,W
+            support_state = support_state.view(num_load_tasks * support_num * 2, 20)            # N * support_num * 2,20
+            support_action = support_action.view(num_load_tasks * support_num * 2, 7)           # N * support_num * 2,7
             # print(support_action.device)
-            query_image = query_image.view(num_load_tasks * query_num * 100, 3, size, size)  # N * query_num * 100,C,H,W
-            query_state = query_state.view(num_load_tasks * query_num * 100, 20)            # N * query_num * 100,20
-            query_action = query_action.view(num_load_tasks * query_num * 100, 7)           # N * query_num * 100,7
+            query_image = query_image.view(num_load_tasks * query_num * 2, 3, size, size)  # N * query_num * 2,C,H,W
+            query_state = query_state.view(num_load_tasks * query_num * 2, 20)            # N * query_num * 2,20
+            query_action = query_action.view(num_load_tasks * query_num * 2, 7)           # N * query_num * 2,7
             
-            support_sentence_U_inp = support_sentence.repeat_interleave(100 * support_num, dim=0)        # N * support_num * 100,20
-            support_sentence_q_inp = support_sentence.repeat_interleave(100 * query_num, dim=0)        # N * query_num * 100,20
+            support_sentence_U_inp = support_sentence.repeat_interleave(2 * support_num, dim=0)        # N * support_num * 2,20
+            support_sentence_q_inp = support_sentence.repeat_interleave(2 * query_num, dim=0)        # N * query_num * 2,20
             assert support_sentence_q_inp.is_cuda
             
             U_out = self.ctr_net(support_image, support_sentence_U_inp, support_state)
