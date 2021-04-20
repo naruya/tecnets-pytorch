@@ -76,7 +76,7 @@ class TecNets(MetaLearner):
                 support_sentence_list, query_sentence_list = [], []
 
             # N,support_num,100,3,125,125
-            import ipdb; ipdb.set_trace() # to check the tensor on the cuda.
+            # import ipdb; ipdb.set_trace() # to check the tensor on the cuda.
             support_image = tasks["support_images"].to(device)
             support_state = tasks["support_states"].to(device)  # N,support_num,100,20
             support_action = tasks["support_actions"].to(device)  # N,support_num,100,7

@@ -31,7 +31,7 @@ if __name__ == '__main__':
 
     assert args.num_batch_tasks % args.num_load_tasks == 0, ""
 
-    meta_learner = TecNets(device=device, lr=args.learning_rate)
+    meta_learner = TecNets(device=device, learning_rate=args.learning_rate)
 
     if args.resume_epoch:
         print("resuming...")
