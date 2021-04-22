@@ -137,10 +137,10 @@ class TecNets(MetaLearner):
             # ---- calc loss_emb ----
             # import ipdb; ipdb.set_trace()
             similarities = torch.matmul(support_sentence, torch.transpose(query_sentence, 0, 1))
-            print("similarities shape: ", similarities.shape)
+            # print("similarities shape: ", similarities.shape)
 
             positives = similarities[torch.eye(num_batch_tasks, dtype=torch.bool)]
-            print(positives.shape)
+            # print(positives.shape)
             positives_ex = positives.unsqueeze(1).view(num_batch_tasks, 1, -1)  # (batch, 1, query)
 
             negatives = similarities[torch.eye(num_batch_tasks, dtype=torch.bool) == 0]
