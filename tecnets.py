@@ -32,6 +32,7 @@ class TecNets(MetaLearner):
             print("normed!", sentence.shape)
             return sentence
         else:
+            print("didn't normed!", sentence[:, 0].shape)
             return sentence[:, 0]  # N,20 ??  maybe error here.
     
     def _norm(self, vecs, axis=1, keepdim=False):
@@ -102,6 +103,7 @@ class TecNets(MetaLearner):
             # query_sentence_list.append(query_sentence)
 
             # ---- calc loss_ctr ----
+            import ipdb; ipdb.set_trace()
             support_image = support_image.view(num_load_tasks * support_num * 100, 3, size, size)  # N * support_num * 2,C,H,W
             support_state = support_state.view(num_load_tasks * support_num * 100, 20)            # N * support_num * 2,20
             support_action = support_action.view(num_load_tasks * support_num * 100, 7)           # N * support_num * 2,7
@@ -139,6 +141,9 @@ class TecNets(MetaLearner):
 
             positives = similarities[torch.eye(num_batch_tasks, dtype=torch.bool)]
             print(positives.shape)
+            positives_ex = positives.unsqueeze(1)  # (batch, 1, query)
+            negatives = similarities[torch.eye(num_batch_tasks, dtype=torch.bool) == 0]
+                                    
 
             for jdx, (query_sentence_j, support_sentence_j) in enumerate(zip(query_sentence, support_sentence)):
                 for idx, U_si in enumerate(support_sentence):
