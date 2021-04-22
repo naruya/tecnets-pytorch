@@ -22,7 +22,7 @@ class TecnetsDataset(Dataset):
         return len(self.task_info_paths)
 
 #    @logger.line_memory_profile
-    def __getitem__(self, index, num_support=1, num_query=1):
+    def __getitem__(self, index, num_support=5, num_query=5):
         # get data from task_paths.
         pickle_file = self.task_info_paths[index]
         with open(pickle_file, 'rb') as f:
@@ -57,7 +57,7 @@ class TecnetsDataset(Dataset):
         actions = torch.stack(actions)
         states = torch.stack(states)
         instructions = torch.from_numpy(np.array(data['instructions'], np.float32))
-        print("images_shape: ", images.shape)
+        # print("images_shape: ", images.shape)
 #        print("actions_shape: ", actions.shape)
 #        print("states_shape: ", states.shape)
         support_actions, query_actions = actions.split(
