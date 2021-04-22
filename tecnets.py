@@ -29,10 +29,10 @@ class TecNets(MetaLearner):
             sentence = self._norm(sentence, axis=2, keepdim=True)
             sentence = torch.mean(sentence, 1)
             sentence = self._norm(sentence, axis=1, keepdim=True)
-            print("normed!", sentence.shape)
+            # print("normed!", sentence.shape)
             return sentence
         else:
-            print("didn't normed!", sentence[:, 0].shape)
+            # print("didn't normed!", sentence[:, 0].shape)
             return sentence[:, 0]  # N,20 ??  maybe error here.
     
     def _norm(self, vecs, axis=1, keepdim=False):
@@ -56,7 +56,7 @@ class TecNets(MetaLearner):
         loss = torch.max(0.1 - real + fake, zero)  # 4032,
         return loss
     
-    # @logger.line_memory_profile
+    @logger.line_memory_profile
     def meta_train(
             self,
             task_loader,
