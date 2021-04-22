@@ -56,7 +56,7 @@ class TecNets(MetaLearner):
         loss = torch.max(0.1 - real + fake, zero)  # 4032,
         return loss
     
-    @logger.line_memory_profile
+    # @logger.line_memory_profile
     def meta_train(
             self,
             task_loader,
@@ -141,9 +141,12 @@ class TecNets(MetaLearner):
 
             positives = similarities[torch.eye(num_batch_tasks, dtype=torch.bool)]
             print(positives.shape)
-            positives_ex = positives.unsqueeze(1)  # (batch, 1, query)
+            positives_ex = positives.unsqueeze(1).view(num_batch_tasks, 1, -1)  # (batch, 1, query)
+
             negatives = similarities[torch.eye(num_batch_tasks, dtype=torch.bool) == 0]
             negatives = negatives.view(num_batch_tasks, num_batch_tasks - 1, -1)
+
+            # positives_ex=torch.Size([8, 1]), negatives=torch.Size([8, 7, 1])
             loss = torch.maximum(0.0, 0.1 - positives_ex + negatives)
             loss = torch.mean(loss)
             _loss_emb = 0.1 * loss  # self.loss_lambda
