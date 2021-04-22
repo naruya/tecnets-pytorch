@@ -47,7 +47,7 @@ if __name__ == '__main__':
     train_task_loader = DataLoader(TecnetsDataset(demo_dir=args.demo_dir),
                                    batch_size=args.num_load_tasks,
                                    shuffle=True,
-                                   num_workers=os.cpu_count() / 4,
+                                   num_workers=8,
                                    pin_memory=True,
                                    drop_last=True)
     # valid_task_loader = DataLoader(TecnetsDataset(demo_dir=args.demo_dir),
