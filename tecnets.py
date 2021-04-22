@@ -132,10 +132,10 @@ class TecNets(MetaLearner):
             # support_sentence_list = torch.cat(support_sentence_list, 0)  # N ,20 -> N,20
             # query_sentence_list = torch.cat(query_sentence_list, 0)  # N * (B/N),20 -> N,20
 
-            query_sentence_j_list, support_sentence_j_list, U_si_list = [], [], []
+            # query_sentence_j_list, support_sentence_j_list, U_si_list = [], [], []
 
             # ---- calc loss_emb ----
-            import ipdb; ipdb.set_trace()
+            # import ipdb; ipdb.set_trace()
             similarities = torch.matmul(support_sentence, torch.transpose(query_sentence, 0, 1))
             print("similarities shape: ", similarities.shape)
 
