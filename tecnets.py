@@ -102,16 +102,16 @@ class TecNets(MetaLearner):
             # query_sentence_list.append(query_sentence)
 
             # ---- calc loss_ctr ----
-            support_image = support_image.view(num_load_tasks * support_num * 2, 3, size, size)  # N * support_num * 2,C,H,W
-            support_state = support_state.view(num_load_tasks * support_num * 2, 20)            # N * support_num * 2,20
-            support_action = support_action.view(num_load_tasks * support_num * 2, 7)           # N * support_num * 2,7
+            support_image = support_image.view(num_load_tasks * support_num * 100, 3, size, size)  # N * support_num * 2,C,H,W
+            support_state = support_state.view(num_load_tasks * support_num * 100, 20)            # N * support_num * 2,20
+            support_action = support_action.view(num_load_tasks * support_num * 100, 7)           # N * support_num * 2,7
             # print(support_action.device)
-            query_image = query_image.view(num_load_tasks * query_num * 2, 3, size, size)  # N * query_num * 2,C,H,W
-            query_state = query_state.view(num_load_tasks * query_num * 2, 20)            # N * query_num * 2,20
-            query_action = query_action.view(num_load_tasks * query_num * 2, 7)           # N * query_num * 2,7
+            query_image = query_image.view(num_load_tasks * query_num * 100, 3, size, size)  # N * query_num * 2,C,H,W
+            query_state = query_state.view(num_load_tasks * query_num * 100, 20)            # N * query_num * 2,20
+            query_action = query_action.view(num_load_tasks * query_num * 100, 7)           # N * query_num * 2,7
             
-            support_sentence_U_inp = support_sentence.repeat_interleave(2 * support_num, dim=0)        # N * support_num * 2,20
-            support_sentence_q_inp = support_sentence.repeat_interleave(2 * query_num, dim=0)        # N * query_num * 2,20
+            support_sentence_U_inp = support_sentence.repeat_interleave(100 * support_num, dim=0)        # N * support_num * 2,20
+            support_sentence_q_inp = support_sentence.repeat_interleave(100 * query_num, dim=0)        # N * query_num * 2,20
             assert support_sentence_q_inp.is_cuda
             
             U_out = self.ctr_net(support_image, support_sentence_U_inp, support_state)
@@ -137,13 +137,8 @@ class TecNets(MetaLearner):
             similarities = torch.matmul(support_sentence, torch.transpose(query_sentence, 0, 1))
             print("similarities shape: ", similarities.shape)
 
-<<<<<<< HEAD
-            positives = torch.masked_select(similarities, torch.eye(num_batch_tasks))
-            # import ipdb; ipdb.set_trace()
-=======
             positives = similarities[torch.eye(num_batch_tasks, dtype=torch.bool)]
             print(positives.shape)
->>>>>>> 034639caaeb76edc126d75fe772f93cbc217a0d8
 
             for jdx, (query_sentence_j, support_sentence_j) in enumerate(zip(query_sentence, support_sentence)):
                 for idx, U_si in enumerate(support_sentence):
