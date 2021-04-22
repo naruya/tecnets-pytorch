@@ -147,9 +147,9 @@ class TecNets(MetaLearner):
             negatives = negatives.view(num_batch_tasks, num_batch_tasks - 1, -1)
 
             # positives_ex=torch.Size([8, 1]), negatives=torch.Size([8, 7, 1])
-            loss = torch.maximum(0.0, 0.1 - positives_ex + negatives)
+            loss = torch.maximum(torch.tensor(0.0), torch.tensor(0.1) - positives_ex + negatives)
             loss = torch.mean(loss)
-            _loss_emb = 0.1 * loss  # self.loss_lambda
+            _loss_emb = torch.tensor(0.1) * loss  # self.loss_lambda
             # for jdx, (query_sentence_j, support_sentence_j) in enumerate(zip(query_sentence, support_sentence)):
             #     for idx, U_si in enumerate(support_sentence):
             #         if jdx == idx:
