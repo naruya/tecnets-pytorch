@@ -46,16 +46,17 @@ class TecnetsDataset(Dataset):
             # !!! will be error when new_test.
             image_list = np.load(demo_folder[:-4] + f'/cond{sample_index + 6}.samp0.npy')
             images.append(torch.from_numpy(np.array(image_list, np.float32)))
-            actions.append(torch.from_numpy(np.array([data['actions'][sample_index]], np.float32)))
-            states.append(torch.from_numpy(np.array([data['states'][sample_index]], np.float32)))
 
+            actions.append(torch.from_numpy(np.array(data['actions'][sample_index], np.float32)))
+            states.append(torch.from_numpy(np.array(data['states'][sample_index], np.float32)))
+        
         images = torch.stack(images)
         actions = torch.stack(actions)
         states = torch.stack(states)
         instructions = torch.from_numpy(np.array(data['instructions'], np.float32))
         # print("images_shape: ", images.shape)
 #        print("actions_shape: ", actions.shape)
-#        print("states_shape: ", states.shape)
+        print("states_shape: ", states.shape)
         support_actions, query_actions = actions.split(
             [num_support, num_query], dim=0)
         support_states, query_states = states.split(
