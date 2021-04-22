@@ -32,13 +32,12 @@ def test(name, param):
             demo_paths = glob.glob(demo_path)
             for demo in demo_paths:
                 if demo[-4:] == ".npy": continue
-                first_image_path = glob.glob(demo + "/0.gif")[0]
-                last_image_path = glob.glob(demo + "/99.gif")[0]
-                first_image = Image.open(first_image_path).convert('RGB')
-                last_image = Image.open(last_image_path).convert('RGB')
-                image_list = [np.array(first_image), np.array(last_image)]
-                np.save(first_image_path[:-6], np.array(image_list))
-                print(first_image_path[:-6] + ".npy")
+                demo_image_path = glob.glog(demo + "/*.gif")
+                image_list = []
+                for demo_image in demo_image_path:
+                    image_list.append(Image.open(demo_image).convert('RGB'))
+                np.save(demo, np.array(image_list))
+                print(demo[:-6] + ".npy")
             # for demo in demo_paths:
             #     if demo[-6:] = "/0.gif":
             #         fast = Image.open(demo).convert('RGB')
