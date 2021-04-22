@@ -143,7 +143,7 @@ class TecNets(MetaLearner):
             print(positives.shape)
             positives_ex = positives.unsqueeze(1)  # (batch, 1, query)
             negatives = similarities[torch.eye(num_batch_tasks, dtype=torch.bool) == 0]
-                                    
+            negatives = negatives.view(batch_size, batch_size - 1, -1)
 
             for jdx, (query_sentence_j, support_sentence_j) in enumerate(zip(query_sentence, support_sentence)):
                 for idx, U_si in enumerate(support_sentence):
