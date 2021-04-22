@@ -56,7 +56,7 @@ class TecNets(MetaLearner):
         loss = torch.max(0.1 - real + fake, zero)  # 4032,
         return loss
     
-    @logger.line_memory_profile
+    # @logger.line_memory_profile
     def meta_train(
             self,
             task_loader,
