@@ -137,8 +137,13 @@ class TecNets(MetaLearner):
             similarities = torch.matmul(support_sentence, torch.transpose(query_sentence, 0, 1))
             print("similarities shape: ", similarities.shape)
 
+<<<<<<< HEAD
             positives = torch.masked_select(similarities, torch.eye(num_batch_tasks))
             # import ipdb; ipdb.set_trace()
+=======
+            positives = similarities[torch.eye(num_batch_tasks, dtype=torch.bool)]
+            print(positives.shape)
+>>>>>>> 034639caaeb76edc126d75fe772f93cbc217a0d8
 
             for jdx, (query_sentence_j, support_sentence_j) in enumerate(zip(query_sentence, support_sentence)):
                 for idx, U_si in enumerate(support_sentence):
