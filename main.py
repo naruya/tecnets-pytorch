@@ -13,8 +13,8 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Task-Embedded Control Networks Implementation')
     parser.add_argument('--device_ids', type=int, nargs='+', help='list of CUDA devices (default: [0])', default=[0])
     parser.add_argument('--demo_dir', type=str, default='/root/datasets/mil_sim_push/')
-    parser.add_argument('--num_batch_tasks', type=int, default=64)
-    parser.add_argument('--num_load_tasks', type=int, default=64)
+    parser.add_argument('--num_batch_tasks', type=int, default=16)
+    parser.add_argument('--num_load_tasks', type=int, default=16)
     parser.add_argument('--train_n_shot', type=int, default=1)
     parser.add_argument('--test_n_shot', type=int, default=1)
     parser.add_argument('--learning_rate', type=float, default=0.0005)
@@ -47,7 +47,7 @@ if __name__ == '__main__':
     train_task_loader = DataLoader(TecnetsDataset(demo_dir=args.demo_dir),
                                    batch_size=args.num_load_tasks,
                                    shuffle=True,
-                                   num_workers=os.cpu_count(),
+                                   num_workers=os.cpu_count() / 4,
                                    pin_memory=True,
                                    drop_last=True)
     # valid_task_loader = DataLoader(TecnetsDataset(demo_dir=args.demo_dir),
