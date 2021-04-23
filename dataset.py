@@ -53,7 +53,7 @@ class TecnetsDataset(Dataset):
             actions.append(torch.from_numpy(np.array(data['actions'][sample_index], np.float32)))
             states.append(torch.from_numpy(np.array(data['states'][sample_index], np.float32)))
         
-        images = (torch.stack(images)
+        images = torch.stack(images)
         actions = torch.stack(actions)
         states = torch.stack(states)
         instructions = torch.from_numpy(np.array(data['instructions'], np.float32))
