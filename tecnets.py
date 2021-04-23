@@ -96,7 +96,7 @@ class TecNets(MetaLearner):
             states = tasks["states"].to(device)
             instructions = tasks["instructions"].to(device)
 
-            images = (images.permute(0, 1, 4, 2, 3) - 127.5) / 127.5
+            images = (images.permute(0, 1, 2, 5, 3, 4) - 127.5) / 127.5
             support_image, query_image = images.split([1, 1], dim=0)
             support_action, query_action = actions.split([1, 1], dim=0)
             support_state, query_state = states.split([1, 1], dim=0)
