@@ -7,15 +7,18 @@ from PIL import Image
 import pickle
 import re
 from delogger.presets.profiler import logger
+from natsort import natsorted
 
 class TecnetsDataset(Dataset):
-    def __init__(self, demo_dir='./datasets/mil_sim_push/', train=True):
+    def __init__(self, demo_dir='./datasets/mil_sim_push/', train=True, support_shot=1, query_shot=1):
         # select the gif folder.
+        self.support_shot = support_shot
+        self.query_shot = query_shot
         if train:
             task_paths = f'{demo_dir}train/taskinfo*.pkl'
         else:
             task_paths = f'{demo_dir}test/taskinfo*.pkl'
-        self.task_info_paths = glob.glob(task_paths)
+        self.task_info_paths = natsorted(glob.glob(task_paths))
         # print(len(self.task_info_paths))
 
     def __len__(self):
@@ -50,7 +53,7 @@ class TecnetsDataset(Dataset):
             actions.append(torch.from_numpy(np.array(data['actions'][sample_index], np.float32)))
             states.append(torch.from_numpy(np.array(data['states'][sample_index], np.float32)))
         
-        images = torch.stack(images)
+        images = torch.stack(images).permute((0, 1, 4, 2, 3) - 127.5) / 127.5
         actions = torch.stack(actions)
         states = torch.stack(states)
         instructions = torch.from_numpy(np.array(data['instructions'], np.float32))
@@ -68,11 +71,13 @@ class TecnetsDataset(Dataset):
         task_info = {
             'support_actions': support_actions,  # len(support), 100, 7.
             'support_states': support_states,  # len(support), 100,20.
-            'support_images': ((support_images.permute(0, 1, 4, 2, 3) - 127.5) / 127.5),
+            # 'support_images': ((support_images.permute(0, 1, 4, 2, 3) - 127.5) / 127.5),
+            'support_images': support_images,
             'support_instructions': instructions,  # len(support), 1, 128.
             'query_actions': query_actions,  # len(query), 100, 7.
             'query_states': query_states,  # len(query), 100, 20.
-            'query_images': ((query_images.permute(0, 1, 4, 2, 3) - 127.5) / 127.5),
+            # 'query_images': ((query_images.permute(0, 1, 4, 2, 3) - 127.5) / 127.5),
+            'query_images': query_images,
             'query_instructions': instructions,  # len(query), 1, 128.
         }
         return task_info
