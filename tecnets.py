@@ -91,12 +91,13 @@ class TecNets(MetaLearner):
             # query_instruction = tasks['query_instructions'].to(device)  # # len(query), 1, 128.
             # print("query_action.device: ", query_action.device)
             # print("support_image.device: ", support_image.device)
-            images = tasks["images"].to(device)
+            images = ((tasks["images"].permute(0, 1, 2, 5, 3, 4) - 127.5) / 127.5).to(device)
+            # images = tasks["images"].to(device)
             actions = tasks["actions"].to(device)
             states = tasks["states"].to(device)
             instructions = tasks["instructions"].to(device)
 
-            images = (images.permute(0, 1, 2, 5, 3, 4) - 127.5) / 127.5
+            # images = (images.permute(0, 1, 2, 5, 3, 4) - 127.5) / 127.5
             support_image, query_image = images.split([1, 1], dim=0)
             support_action, query_action = actions.split([1, 1], dim=0)
             support_state, query_state = states.split([1, 1], dim=0)
@@ -114,7 +115,7 @@ class TecNets(MetaLearner):
             # query_sentence_list.append(query_sentence)
 
             # ---- calc loss_ctr ----
-            support_image = support_image.view(num_load_tasks * support_num * 100, 3, size, size)  # N * support_num * 2,C,H,W
+            support_image = support_image.ew(num_load_tasks * support_num * 100, 3, size, size)  # N * support_num * 2,C,H,W
             support_state = support_state.view(num_load_tasks * support_num * 100, 20)            # N * support_num * 2,20
             support_action = support_action.view(num_load_tasks * support_num * 100, 7)           # N * support_num * 2,7
             # print(support_action.device)
