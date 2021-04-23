@@ -56,7 +56,7 @@ class TecNets(MetaLearner):
         loss = torch.max(0.1 - real + fake, zero)  # 4032,
         return loss
     
-    @logger.line_memory_profile
+ #   @logger.line_memory_profile
     def meta_train(
             self,
             task_loader,
@@ -96,11 +96,12 @@ class TecNets(MetaLearner):
             actions = tasks["actions"].to(device)
             states = tasks["states"].to(device)
             instructions = tasks["instructions"].to(device)
-
-            # images = (images.permute(0, 1, 2, 5, 3, 4) - 127.5) / 127.5
-            support_image, query_image = images.split([1, 1], dim=0)
-            support_action, query_action = actions.split([1, 1], dim=0)
-            support_state, query_state = states.split([1, 1], dim=0)
+            
+            images = (images.permute(0, 1, 2, 5, 3, 4) - 127.5) / 127.5
+            # print(images.shape)
+            support_image, query_image = images.split([1, 1], dim=1)
+            support_action, query_action = actions.split([1, 1], dim=1)
+            support_state, query_state = states.split([1, 1], dim=1)
             # support_instruction = query_instruction = instructions
 
             support_num, query_num = len(support_image[1]), len(query_image[1])
@@ -114,14 +115,23 @@ class TecNets(MetaLearner):
             # support_sentence_list.append(support_sentence)
             # query_sentence_list.append(query_sentence)
 
+
+   #         print(support_image.shape)
+    #        print(query_state.shape)
             # ---- calc loss_ctr ----
+<<<<<<< HEAD
             support_image = support_image.ew(num_load_tasks * support_num * 100, 3, size, size)  # N * support_num * 2,C,H,W
             support_state = support_state.view(num_load_tasks * support_num * 100, 20)            # N * support_num * 2,20
             support_action = support_action.view(num_load_tasks * support_num * 100, 7)           # N * support_num * 2,7
+=======
+            support_image = support_image.reshape(num_load_tasks * support_num * 100, 3, size, size)  # N * support_num * 2,C,H,W
+            support_state = support_state.reshape(num_load_tasks * support_num * 100, 20)            # N * support_num * 2,20
+            support_action = support_action.reshape(num_load_tasks * support_num * 100, 7)           # N * support_num * 2,7
+>>>>>>> c2f75a42bf80b29a56f33f19471dd7eadc03c5b8
             # print(support_action.device)
-            query_image = query_image.view(num_load_tasks * query_num * 100, 3, size, size)  # N * query_num * 2,C,H,W
-            query_state = query_state.view(num_load_tasks * query_num * 100, 20)            # N * query_num * 2,20
-            query_action = query_action.view(num_load_tasks * query_num * 100, 7)           # N * query_num * 2,7
+            query_image = query_image.reshape(num_load_tasks * query_num * 100, 3, size, size)  # N * query_num * 2,C,H,W
+            query_state = query_state.reshape(num_load_tasks * query_num * 100, 20)            # N * query_num * 2,20
+            query_action = query_action.reshape(num_load_tasks * query_num * 100, 7)           # N * query_num * 2,7
             
             support_sentence_U_inp = support_sentence.repeat_interleave(100 * support_num, dim=0)        # N * support_num * 2,20
             support_sentence_q_inp = support_sentence.repeat_interleave(100 * query_num, dim=0)        # N * query_num * 2,20
