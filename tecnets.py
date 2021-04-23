@@ -91,13 +91,13 @@ class TecNets(MetaLearner):
             # query_instruction = tasks['query_instructions'].to(device)  # # len(query), 1, 128.
             # print("query_action.device: ", query_action.device)
             # print("support_image.device: ", support_image.device)
-            images = ((tasks["images"].permute(0, 1, 2, 5, 3, 4) - 127.5) / 127.5).to(device)
-            # images = tasks["images"].to(device)
+#            images = ((tasks["images"].permute(0, 1, 2, 5, 3, 4) - 127.5) / 127.5).to(device)
+            images = tasks["images"].to(device)
             actions = tasks["actions"].to(device)
             states = tasks["states"].to(device)
             instructions = tasks["instructions"].to(device)
             
- #           images = (images.permute(0, 1, 2, 5, 3, 4) - 127.5) / 127.5
+            images = (images.permute(0, 1, 2, 5, 3, 4) - 127.5) / 127.5
             # print(images.shape)
             support_image, query_image = images.split([1, 1], dim=1)
             support_action, query_action = actions.split([1, 1], dim=1)
@@ -119,15 +119,9 @@ class TecNets(MetaLearner):
    #         print(support_image.shape)
     #        print(query_state.shape)
             # ---- calc loss_ctr ----
-<<<<<<< HEAD
-            support_image = support_image.ew(num_load_tasks * support_num * 100, 3, size, size)  # N * support_num * 2,C,H,W
-            support_state = support_state.view(num_load_tasks * support_num * 100, 20)            # N * support_num * 2,20
-            support_action = support_action.view(num_load_tasks * support_num * 100, 7)           # N * support_num * 2,7
-=======
             support_image = support_image.reshape(num_load_tasks * support_num * 100, 3, size, size)  # N * support_num * 2,C,H,W
             support_state = support_state.reshape(num_load_tasks * support_num * 100, 20)            # N * support_num * 2,20
             support_action = support_action.reshape(num_load_tasks * support_num * 100, 7)           # N * support_num * 2,7
->>>>>>> c2f75a42bf80b29a56f33f19471dd7eadc03c5b8
             # print(support_action.device)
             query_image = query_image.reshape(num_load_tasks * query_num * 100, 3, size, size)  # N * query_num * 2,C,H,W
             query_state = query_state.reshape(num_load_tasks * query_num * 100, 20)            # N * query_num * 2,20
