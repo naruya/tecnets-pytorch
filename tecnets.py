@@ -56,7 +56,7 @@ class TecNets(MetaLearner):
         loss = torch.max(0.1 - real + fake, zero)  # 4032,
         return loss
     
- #   @logger.line_memory_profile
+    @logger.line_memory_profile
     def meta_train(
             self,
             task_loader,
@@ -97,7 +97,7 @@ class TecNets(MetaLearner):
             states = tasks["states"].to(device)
             instructions = tasks["instructions"].to(device)
             
-            images = (images.permute(0, 1, 2, 5, 3, 4) - 127.5) / 127.5
+ #           images = (images.permute(0, 1, 2, 5, 3, 4) - 127.5) / 127.5
             # print(images.shape)
             support_image, query_image = images.split([1, 1], dim=1)
             support_action, query_action = actions.split([1, 1], dim=1)
