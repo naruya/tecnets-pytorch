@@ -24,8 +24,8 @@ class MetaLearner(object):
 
         self.emb_net = EmbeddingNet().to(device)
         self.ctr_net = ControlNet().to(device)
-        print("embedding_net: ", self.emb_net)
-        print("ctr_net: ", self.ctr_net)
+ #       print("embedding_net: ", self.emb_net)
+#        print("ctr_net: ", self.ctr_net)
         # import ipdb; ipdb.set_trace()
         # print("self.emb_net: ", self.emb_net.device)
         # self.emb_net = torch.nn.DataParallel(self.emb_net, device_ids=[0])

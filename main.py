@@ -11,7 +11,7 @@ from tecnets import TecNets
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Task-Embedded Control Networks Implementation')
-    parser.add_argument('--device_ids', type=int, nargs='+', help='list of CUDA devices (default: [0])', default=[0])
+    parser.add_argument('--device_ids', type=int, nargs='+', help='list of CUDA devices (default: [0])', default=[3])
     parser.add_argument('--demo_dir', type=str, default='/root/datasets/mil_sim_push/')
     parser.add_argument('--num_batch_tasks', type=int, default=8)
     parser.add_argument('--num_load_tasks', type=int, default=8)
@@ -47,7 +47,7 @@ if __name__ == '__main__':
     train_task_loader = DataLoader(TecnetsDataset(demo_dir=args.demo_dir),
                                    batch_size=args.num_load_tasks,
                                    shuffle=True,
-                                   num_workers=16,
+                                   num_workers=8,
                                    pin_memory=True,
                                    drop_last=True)
     # valid_task_loader = DataLoader(TecnetsDataset(demo_dir=args.demo_dir),
@@ -66,4 +66,4 @@ if __name__ == '__main__':
         meta_learner.meta_train(task_loader=train_task_loader, num_batch_tasks=args.num_batch_tasks, num_load_tasks=args.num_load_tasks, epoch=epoch)
         # print(prof.table())
         # prof.export_chrome_trace('./logs/profile.json')
-        meta_learner.meta_valid(task_loader=train_task_loader, num_batch_tasks=args.num_batch_tasks, num_load_tasks=args.num_load_tasks, epoch=epoch)
+#        meta_learner.meta_valid(task_loader=train_task_loader, num_batch_tasks=args.num_batch_tasks, num_load_tasks=args.num_load_tasks, epoch=epoch)
