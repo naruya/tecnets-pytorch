@@ -23,6 +23,7 @@ class TecNets(MetaLearner):
         inp = torch.cat([image[:, :, 0], image[:, :, -1]], dim=2)  # N,k,6,H,W
         inp = inp.view(N * k, 6, H, W)
         
+        print(self.emb_net())
         sentence = self.emb_net(inp).view(N, k, 20)     # N,k,20
 #        print(sentence.shape)
         if normalize:
@@ -131,6 +132,7 @@ class TecNets(MetaLearner):
             support_sentence_q_inp = support_sentence.repeat_interleave(100 * query_num, dim=0)        # N * query_num * 2,20
             assert support_sentence_q_inp.is_cuda
             
+            print(self.ctr_net())
             U_out = self.ctr_net(support_image, support_sentence_U_inp, support_state)
             _loss_ctr_U = self.loss_fn(U_out, support_action) * len(support_image) * 0.1
 
