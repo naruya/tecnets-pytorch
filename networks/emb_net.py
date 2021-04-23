@@ -2,6 +2,9 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.nn.init as init
 
+from pytorch_memlab import profile
+
+
 class EmbeddingNet(nn.Module):
     def __init__(self):
         super(EmbeddingNet, self).__init__()
@@ -27,6 +30,7 @@ class EmbeddingNet(nn.Module):
         
         self._init_weights()
 
+    # @profile
     def forward(self, vision):
         
         x = vision # 6x125x125

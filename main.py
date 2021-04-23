@@ -4,7 +4,6 @@ import random
 
 import torch
 
-
 from dataset import TecnetsDataset
 from torch.utils.data import DataLoader
 from tecnets import TecNets
@@ -58,12 +57,13 @@ if __name__ == '__main__':
     #                                drop_last=True)
     torch.backends.cudnn.benchmark = True
 
-    meta_epochs = 100  # 400000/11
+    meta_epochs = 4  # 400000/11
 
     for epoch in range(resume_epoch, meta_epochs):
         print("# {}".format(epoch + 1))
         # with torch.autograd.profiler.profile(enabled=True, use_cuda=True) as prof:
         meta_learner.meta_train(task_loader=train_task_loader, num_batch_tasks=args.num_batch_tasks, num_load_tasks=args.num_load_tasks, epoch=epoch)
+
         # print(prof.table())
         # prof.export_chrome_trace('./logs/profile.json')
 #        meta_learner.meta_valid(task_loader=train_task_loader, num_batch_tasks=args.num_batch_tasks, num_load_tasks=args.num_load_tasks, epoch=epoch)

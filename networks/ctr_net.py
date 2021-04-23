@@ -3,6 +3,8 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.nn.init as init
 
+from pytorch_memlab import profile
+
 class ControlNet(nn.Module):
     def __init__(self, device=0):
         super(ControlNet, self).__init__()
@@ -28,6 +30,7 @@ class ControlNet(nn.Module):
         
         self._init_weights()
 
+    # @profile
     def forward(self, vision, sentence, state):
 
         sentence = sentence.view(-1, 20, 1, 1).expand(-1, 20, 125, 125)

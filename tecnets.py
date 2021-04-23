@@ -11,7 +11,7 @@ from utils import vread
 import time
 
 from delogger.presets.profiler import logger
-
+# from pytorch_memlab import profile
 
 class TecNets(MetaLearner):
     def __init__(self, device, learning_rate=None):
@@ -56,7 +56,8 @@ class TecNets(MetaLearner):
         loss = torch.max(0.1 - real + fake, zero)  # 4032,
         return loss
     
-#    @logger.line_memory_profile
+    
+    @logger.line_memory_profile
     def meta_train(
             self,
             task_loader,
@@ -97,6 +98,11 @@ class TecNets(MetaLearner):
             states = tasks["states"].to(device)
             instructions = tasks["instructions"].to(device)
             
+            # # jitで加速できるらしい。
+            # @torch.jit.script
+            # def norm_image(images):
+            #     return (images.permute(0, 1, 2, 5, 3, 4) - 127.5) / 127.5
+
             images = (images.permute(0, 1, 2, 5, 3, 4) - 127.5) / 127.5
             # print(images.shape)
             support_image, query_image = images.split([1, 1], dim=1)
@@ -140,8 +146,8 @@ class TecNets(MetaLearner):
             if train:
                 _loss_ctr_U.backward(retain_graph=True)  # memory saving
                 _loss_ctr_q.backward(retain_graph=True)
-            loss_ctr_U += _loss_ctr_U.item()
-            loss_ctr_q += _loss_ctr_q.item()
+            # loss_ctr_U += _loss_ctr_U.item()
+            # loss_ctr_q += _loss_ctr_q.item()
 
             # don't convert into list. graph informations will be lost.
             # (and an error will occur)
@@ -180,13 +186,13 @@ class TecNets(MetaLearner):
             if train:
                 _loss_emb.backward()
                 self.opt.step()
-            loss_emb = _loss_emb.item()
+            # loss_emb = _loss_emb.item()
 
-            loss = loss_emb + loss_ctr_U + loss_ctr_q
-            loss_emb_list += loss_emb
-            loss_ctr_U_list += loss_ctr_U
-            loss_ctr_q_list += loss_ctr_q
-            loss_list += loss
+            # loss = loss_emb + loss_ctr_U + loss_ctr_q
+            # loss_emb_list += loss_emb
+            # loss_ctr_U_list += loss_ctr_U
+            # loss_ctr_q_list += loss_ctr_q
+            # loss_list += loss
         # -- end all tasks
 
         loss_emb = loss_emb_list / num_task

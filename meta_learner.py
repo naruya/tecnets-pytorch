@@ -17,6 +17,9 @@ from networks.emb_net import EmbeddingNet
 from utils import load_scale_and_bias
 import cv2
 
+from pytorch_memlab import profile
+from pytorch_memlab import MemReporter
+
 class MetaLearner(object):
     def __init__(self, device, learning_rate):
         
@@ -30,8 +33,8 @@ class MetaLearner(object):
         # print("self.emb_net: ", self.emb_net.device)
         # self.emb_net = torch.nn.DataParallel(self.emb_net, device_ids=[0])
         # self.ctr_net = torch.nn.DataParallel(self.ctr_net, device_ids=[0])
-        # self.emb_net = torch.nn.parallel.DistributedDataParallel(self.emb_net, device_ids=[0])
-        # self.ctr_net = torch.nn.parallel.DistributedDataParallel(self.ctr_net, device_ids=[0])
+        # self.emb_net = torch.nn.parallel.DistributedDataParallel(self.emb_net, device_ids=[0, 1])
+        # self.ctr_net = torch.nn.parallel.DistributedDataParallel(self.ctr_net, device_ids=[0, 1])
 
         params = list(self.emb_net.parameters()) + list(self.ctr_net.parameters())
 
