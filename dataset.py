@@ -60,27 +60,35 @@ class TecnetsDataset(Dataset):
         # print("images_shape: ", images.shape)
 #        print("actions_shape: ", actions.shape)
         # print("states_shape: ", states.shape)
-        support_actions, query_actions = actions.split(
-            [num_support, num_query], dim=0)
-        support_states, query_states = states.split(
-            [num_support, num_query], dim=0)
-        support_images, query_images = images.split(
-            [num_support, num_query], dim=0)
+        # support_actions, query_actions = actions.split(
+        #     [num_support, num_query], dim=0)
+        # support_states, query_states = states.split(
+        #     [num_support, num_query], dim=0)
+        # support_images, query_images = images.split(
+        #     [num_support, num_query], dim=0)
         # print(support_images.shape, len(support_actions))
         
-        task_info = {
-            'support_actions': support_actions,  # len(support), 100, 7.
-            'support_states': support_states,  # len(support), 100,20.
-            # 'support_images': ((support_images.permute(0, 1, 4, 2, 3) - 127.5) / 127.5),
-            'support_images': support_images,
-            'support_instructions': instructions,  # len(support), 1, 128.
-            'query_actions': query_actions,  # len(query), 100, 7.
-            'query_states': query_states,  # len(query), 100, 20.
-            # 'query_images': ((query_images.permute(0, 1, 4, 2, 3) - 127.5) / 127.5),
-            'query_images': query_images,
-            'query_instructions': instructions,  # len(query), 1, 128.
+        # task_info = {
+        #     'support_actions': support_actions,  # len(support), 100, 7.
+        #     'support_states': support_states,  # len(support), 100,20.
+        #     # 'support_images': ((support_images.permute(0, 1, 4, 2, 3) - 127.5) / 127.5),
+        #     'support_images': support_images,
+        #     'support_instructions': instructions,  # len(support), 1, 128.
+        #     'query_actions': query_actions,  # len(query), 100, 7.
+        #     'query_states': query_states,  # len(query), 100, 20.
+        #     # 'query_images': ((query_images.permute(0, 1, 4, 2, 3) - 127.5) / 127.5),
+        #     'query_images': query_images,
+        #     'query_instructions': instructions,  # len(query), 1, 128.
+        # }
+
+        task_info_query_and_support = {
+            "images": images,
+            "actions": actions,
+            "states": states,
+            "instructions": instructions,
         }
-        return task_info
+
+        return task_info_query_and_support
 
     # def _get_gif(self, demo_paths):
     #     return [torch.from_numpy(np.array(Image.open(demo))) for demo in demo_paths]

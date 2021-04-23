@@ -56,7 +56,7 @@ class TecNets(MetaLearner):
         loss = torch.max(0.1 - real + fake, zero)  # 4032,
         return loss
     
-    # @logger.line_memory_profile
+    @logger.line_memory_profile
     def meta_train(
             self,
             task_loader,
@@ -81,16 +81,27 @@ class TecNets(MetaLearner):
 
             # N,support_num,100,3,125,125
             # import ipdb; ipdb.set_trace() # to check the tensor on the cuda.
-            support_image = tasks["support_images"].to(device)
-            support_state = tasks["support_states"].to(device)  # N,support_num,100,20
-            support_action = tasks["support_actions"].to(device)  # N,support_num,100,7
-            # support_instruction = tasks['support_instructions'].to(device)
-            query_image = tasks["query_images"].to(device)  # N,query_num,100,3,125,125
-            query_state = tasks["query_states"].to(device)    # N,query_num,100,20
-            query_action = tasks["query_actions"].to(device)  # N,query_num,100,7
+            # support_image = tasks["support_images"].to(device)
+            # support_state = tasks["support_states"].to(device)  # N,support_num,100,20
+            # support_action = tasks["support_actions"].to(device)  # N,support_num,100,7
+            # # support_instruction = tasks['support_instructions'].to(device)
+            # query_image = tasks["query_images"].to(device)  # N,query_num,100,3,125,125
+            # query_state = tasks["query_states"].to(device)    # N,query_num,100,20
+            # query_action = tasks["query_actions"].to(device)  # N,query_num,100,7
             # query_instruction = tasks['query_instructions'].to(device)  # # len(query), 1, 128.
             # print("query_action.device: ", query_action.device)
             # print("support_image.device: ", support_image.device)
+            images = tasks["images"].to(device)
+            actions = tasks["actions"].to(device)
+            states = tasks["states"].to(device)
+            instructions = tasks["instructions"].to(device)
+
+            images = (images.permute(0, 1, 4, 2, 3) - 127.5) / 127.5
+            support_image, query_image = images.split([1, 1], dim=0)
+            support_action, query_action = actions.split([1, 1], dim=0)
+            support_state, query_state = states.split([1, 1], dim=0)
+            # support_instruction = query_instruction = instructions
+
             support_num, query_num = len(support_image[1]), len(query_image[1])
             size = 125  # 125 or 64
 
