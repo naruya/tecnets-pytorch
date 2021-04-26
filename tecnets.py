@@ -39,24 +39,6 @@ class TecNets(MetaLearner):
         mag = torch.linalg.norm(vecs, dim=axis, keepdim=keepdim)
         return vecs / mag
 
-    def cos_hinge_loss(
-            self,
-            query_sentence_list,
-            support_sentence_list,
-            U_si_list):
-        # print(len(query_sentence_list))
-        query_sentence = torch.stack(query_sentence_list)  # 4032, 20
-        support_sentence = torch.stack(support_sentence_list)  # 4032, 20
-        U_si = torch.stack(U_si_list)  # 4032, 20
-
-        real = (query_sentence * support_sentence).sum(1)  # 4032,
-        fake = (query_sentence * U_si).sum(1)  # 4032,
-        zero = torch.zeros(1).to(self.device)  # 1,
-        # print("zero: ", zero.device)
-        loss = torch.max(0.1 - real + fake, zero)  # 4032,
-        return loss
-    
-    
     @logger.line_memory_profile
     def meta_train(
             self,
@@ -80,19 +62,6 @@ class TecNets(MetaLearner):
             loss_emb, loss_ctr_U, loss_ctr_q = 0, 0, 0
             support_sentence_list, query_sentence_list = [], []
 
-            # N,support_num,100,3,125,125
-            # import ipdb; ipdb.set_trace() # to check the tensor on the cuda.
-            # support_image = tasks["support_images"].to(device)
-            # support_state = tasks["support_states"].to(device)  # N,support_num,100,20
-            # support_action = tasks["support_actions"].to(device)  # N,support_num,100,7
-            # # support_instruction = tasks['support_instructions'].to(device)
-            # query_image = tasks["query_images"].to(device)  # N,query_num,100,3,125,125
-            # query_state = tasks["query_states"].to(device)    # N,query_num,100,20
-            # query_action = tasks["query_actions"].to(device)  # N,query_num,100,7
-            # query_instruction = tasks['query_instructions'].to(device)  # # len(query), 1, 128.
-            # print("query_action.device: ", query_action.device)
-            # print("support_image.device: ", support_image.device)
-#            images = ((tasks["images"].permute(0, 1, 2, 5, 3, 4) - 127.5) / 127.5).to(device)
             images = tasks["images"].to(device)
             actions = tasks["actions"].to(device)
             states = tasks["states"].to(device)
@@ -104,7 +73,6 @@ class TecNets(MetaLearner):
             #     return (images.permute(0, 1, 2, 5, 3, 4) - 127.5) / 127.5
 
             images = (images.permute(0, 1, 2, 5, 3, 4) - 127.5) / 127.5
-            # print(images.shape)
             support_image, query_image = images.split([1, 1], dim=1)
             support_action, query_action = actions.split([1, 1], dim=1)
             support_state, query_state = states.split([1, 1], dim=1)
@@ -143,18 +111,6 @@ class TecNets(MetaLearner):
             q_out = self.ctr_net(query_image, support_sentence_q_inp, query_state)
             _loss_ctr_q = self.loss_fn(q_out, query_action) * len(query_image) * 0.1
 
-            if train:
-                _loss_ctr_U.backward(retain_graph=True)  # memory saving
-                _loss_ctr_q.backward(retain_graph=True)
-            # loss_ctr_U += _loss_ctr_U.item()
-            # loss_ctr_q += _loss_ctr_q.item()
-
-            # don't convert into list. graph informations will be lost.
-            # (and an error will occur)
-            # support_sentence_list = torch.cat(support_sentence_list, 0)  # N ,20 -> N,20
-            # query_sentence_list = torch.cat(query_sentence_list, 0)  # N * (B/N),20 -> N,20
-
-            # query_sentence_j_list, support_sentence_j_list, U_si_list = [], [], []
 
             # ---- calc loss_emb ----
             # import ipdb; ipdb.set_trace()
@@ -173,26 +129,21 @@ class TecNets(MetaLearner):
             loss = torch.maximum(torch.tensor(0.0).to(device), torch.tensor(0.1).to(device) - positives_ex + negatives)
             loss = torch.mean(loss)
             _loss_emb = torch.tensor(0.1).to(device) * loss  # self.loss_lambda
-            # for jdx, (query_sentence_j, support_sentence_j) in enumerate(zip(query_sentence, support_sentence)):
-            #     for idx, U_si in enumerate(support_sentence):
-            #         if jdx == idx:
-            #             continue
-            #         query_sentence_j_list.append(query_sentence_j)
-            #         support_sentence_j_list.append(support_sentence_j)
-            #         U_si_list.append(U_si)
-
-            # _loss_emb = torch.sum(self.cos_hinge_loss(query_sentence_j_list, support_sentence_j_list, U_si_list)) * 1.0
 
             if train:
-                _loss_emb.backward()
+                _loss_ctr_U.backward(retain_graph=True)  # memory saving
+                _loss_ctr_q.backward(retain_graph=True)
+                _loss_emb.backward(retain_graph=True)
                 self.opt.step()
-            # loss_emb = _loss_emb.item()
+            loss_ctr_U += _loss_ctr_U.item()
+            loss_ctr_q += _loss_ctr_q.item()
+            loss_emb = _loss_emb.item()
 
-            # loss = loss_emb + loss_ctr_U + loss_ctr_q
-            # loss_emb_list += loss_emb
-            # loss_ctr_U_list += loss_ctr_U
-            # loss_ctr_q_list += loss_ctr_q
-            # loss_list += loss
+            loss = loss_emb + loss_ctr_U + loss_ctr_q
+            loss_emb_list += loss_emb
+            loss_ctr_U_list += loss_ctr_U
+            loss_ctr_q_list += loss_ctr_q
+            loss_list += loss
         # -- end all tasks
 
         loss_emb = loss_emb_list / num_task

@@ -7,6 +7,7 @@ import pickle
 import re
 from delogger.presets.profiler import logger
 from natsort import natsorted
+from memory_profiler import profile
 
 class TecnetsDataset(Dataset):
     def __init__(self, demo_dir='./datasets/mil_sim_push/', train=True, support_shot=1, query_shot=1):
@@ -47,10 +48,10 @@ class TecnetsDataset(Dataset):
 
             # !!! will be error when new_test.
             image_list = np.load(demo_folder[:-4] + f'/cond{sample_index + 6}.samp0.npy')
-            images.append(torch.from_numpy(np.array(image_list, np.float32)))
+            images.append(torch.tensor(image_list, dtype=torch.float32))
 
-            actions.append(torch.from_numpy(np.array(data['actions'][sample_index], np.float32)))
-            states.append(torch.from_numpy(np.array(data['states'][sample_index], np.float32)))
+            actions.append(torch.tensor(data['actions'][sample_index], dtype=torch.float32))
+            states.append(torch.tensor(data['states'][sample_index], dtype=torch.float32))
         
         images = torch.stack(images)
         actions = torch.stack(actions)

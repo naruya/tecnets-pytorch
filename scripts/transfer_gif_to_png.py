@@ -31,13 +31,16 @@ def test(name, param):
             demo_path = task_info_paths[index][:-4] + '/cond*'
             demo_paths = glob.glob(demo_path)
             for demo in demo_paths:
-                if demo[-4:] == ".npy": continue
-                demo_image_path = glob.glob(demo + "/*.gif")
-                image_list = []
-                for demo_image in demo_image_path:
-                    image_list.append(np.array(Image.open(demo_image).convert('RGB')))
-                np.save(demo, np.array(image_list))
-                print(demo[:-6] + ".npy", len(image_list))
+                if demo[-4:] == ".npy":
+                    os.remove(demo)
+                    print(demo)
+                # demo_image_path = glob.glob(demo + "/*.gif")
+                # image_list = []
+                # for demo_image in demo_image_path:
+                #     image_list.append(np.array(Image.open(demo_image).convert('RGB')))
+                # np.save(demo, np.array(image_list))
+                # print(demo[:-6] + ".npy", len(image_list))
+                # os.remove(demo[:-6] + ".npy")
             # for demo in demo_paths:
             #     if demo[-6:] = "/0.gif":
             #         fast = Image.open(demo).convert('RGB')
