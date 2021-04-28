@@ -108,65 +108,82 @@ def _pre(X_train, y_train, X_test, y_test):
 X_train, y_train, X_test, y_test = [], [], [], []
 X_train, y_train, X_test, y_test = _pre(X_train, y_train, X_test, y_test)
 
+# def save_data(X_train, y_train, X_test, y_test):
+#     X_train, y_train, X_test, y_test = np.array(X_train), np.array(y_train), np.array(X_test), np.array(y_test)
+    # print(X_train.shape)
+    # print(y_train.shape)
+    # print(X_test.shape)
+    # print(y_test.shape)
+    # def save_pkl(file, file_name):
+    #     with open(file_name, 'wb') as f:
+    #         pickle.dump(file, f)
+    #         print("Done!")
+    # pickle.dump(X_test, "X_test")
+    # pickle.dump(y_train, "y_train")
+    # pickle.dump(y_test, "y_test")
+    # save_pkl(X_train, "X_train.pkl")
+    # save_pkl(y_train, "y_train.pkl")
+    # save_pkl(X_test, "X_test.pkl")
+    # save_pkl(y_test, "y_test.pkl")
+    # print("Saved!")
+# save_data(X_train, y_train, X_test, y_test)
+
 # Main process from here.
-import wandb
-from wandb.keras import WandbCallback
+# import wandb
+# from wandb.keras import WandbCallback
 
-run = wandb.init(project='Convautoencoder-1',
-                 config={  # and include hyperparameters and metadata
-                     "learning_rate": 0.005,
-                     "epochs": 10,
-                     "batch_size": 64
-                    #  "loss_function": "sparse_categorical_crossentropy",
-                    #  "architecture": "CNN",
-                    #  "dataset": "CIFAR-10"
-                 })
+# run = wandb.init(project='Convautoencoder-1',
+#                  config={  # and include hyperparameters and metadata
+#                      "learning_rate": 0.005,
+#                      "epochs": 10,
+#                      "batch_size": 64
+#                     #  "loss_function": "sparse_categorical_crossentropy",
+#                     #  "architecture": "CNN",
+#                     #  "dataset": "CIFAR-10"
+#                  })
 
-config = wandb.config
+# config = wandb.config
 
-# for i in range(4:
-class ConvolutionalAutoencoder(Model):
-    """
-    layer = tf.layers.conv2d(layer, 16, 5, 2, 'same')
-    layer = tf.contrib.layers.layer_norm(layer, activation_fn="elu")
-    """
-    def __init__(self):
-        super(ConvolutionalAutoencoder, self).__init__()
-        self.encoder = tf.keras.Sequential([
-            layers.Input(shape=(125, 125, 3)),
-            layers.Conv2D(16, (5, 5), activation='elu', padding='same', strides=2),
-            layers.Conv2D(16, (5, 5), activation='elu', padding='same', strides=2),
-            layers.Conv2D(16, (5, 5), activation='elu', padding='same', strides=2),
-            layers.Conv2D(16, (5, 5), activation='elu', padding='same', strides=2),
-            layers.Flatten(),
-            layers.Dense(20)])
+# # for i in range(4:
+# class ConvolutionalAutoencoder(Model):
+#     """
+#     layer = tf.layers.conv2d(layer, 16, 5, 2, 'same')
+#     layer = tf.contrib.layers.layer_norm(layer, activation_fn="elu")
+#     """
+#     def __init__(self):
+#         super(ConvolutionalAutoencoder, self).__init__()
+#         self.encoder = tf.keras.Sequential([
+#             layers.Input(shape=(125, 125, 3)),
+#             layers.Conv2D(16, (5, 5), activation='elu', padding='same', strides=2),
+#             layers.Conv2D(16, (5, 5), activation='elu', padding='same', strides=2),
+#             layers.Conv2D(16, (5, 5), activation='elu', padding='same', strides=2),
+#             layers.Conv2D(16, (5, 5), activation='elu', padding='same', strides=2),
+#             layers.Flatten(),
+#             layers.Dense(20)])
 
-        self.decoder = tf.keras.Sequential([
-            layers.Dense(125 * 125 * 3),
-            layers.Reshape((-1, 125, 125, 3)),
-            layers.Conv2DTranspose(16, kernel_size=3, strides=2, activation='elu', padding='same'),
-            layers.Conv2DTranspose(16, kernel_size=3, strides=2, activation='elu', padding='same'),
-            layers.Conv2DTranspose(16, kernel_size=3, strides=2, activation='elu', padding='same'),
-            layers.Conv2DTranspose(16, kernel_size=3, strides=2, activation='elu', padding='same'),
-            layers.Conv2D(1, kernel_size=(3, 3), activation='sigmoid', padding='same')])
+#         self.decoder = tf.keras.Sequential([
+#             layers.Dense(125 * 125 * 3),
+#             layers.Reshape((-1, 125, 125, 3)),
+#             layers.Conv2DTranspose(16, kernel_size=3, strides=2, activation='elu', padding='same'),
+#             layers.Conv2DTranspose(16, kernel_size=3, strides=2, activation='elu', padding='same'),
+#             layers.Conv2DTranspose(16, kernel_size=3, strides=2, activation='elu', padding='same'),
+#             layers.Conv2DTranspose(16, kernel_size=3, strides=2, activation='elu', padding='same'),
+#             layers.Conv2D(1, kernel_size=(3, 3), activation='sigmoid', padding='same')])
 
-    def call(self, x):
-        encoded = self.encoder(x)
-        decoded = self.decoder(encoded)
-        return decoded
+#     def call(self, x):
+#         encoded = self.encoder(x)
+#         decoded = self.decoder(encoded)
+#         return decoded
 
-autoencoder = ConvolutionalAutoencoder()
-# autoencoder.summary()
+# autoencoder = ConvolutionalAutoencoder()
+# # autoencoder.summary()
 
-optimizer = tf.keras.optimizers.Adam(config.learning_rate)
-autoencoder.compile(optimizer=optimizer, loss=losses.MeanSquaredError())
+# optimizer = tf.keras.optimizers.Adam(config.learning_rate)
+# autoencoder.compile(optimizer=optimizer, loss=losses.MeanSquaredError())
 
-autoencoder.fit(X_train, X_train,
-                epochs=config.epochs,
-                batch_size=config.batch_size,
-                shuffle=True,
-                validation_data=(X_test, X_test),
-                callbacks=[WandbCallback()])
-
-
-# import ipdb; ipdb.set_trace()
+# # autoencoder.fit(X_train, X_train,
+# #                 epochs=config.epochs,
+# #                 batch_size=config.batch_size,
+# #                 shuffle=True,
+# #                 validation_data=(X_test, X_test),
+# #                 callbacks=[WandbCallback()])
